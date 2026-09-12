@@ -6,8 +6,10 @@ import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 
+const pgUrl = (process.env.DATABASE_URL ?? "postgresql://localhost:5432/grocery_db").replace(/\?schema=[^&]*$/, "");
+
 const db = new PrismaClient({
-  adapter: new PrismaPg(process.env.DATABASE_URL ?? "postgresql://localhost:5432/grocery_db", { schema: "public" }),
+  adapter: new PrismaPg(pgUrl, { schema: "grocery" }),
 });
 
 function mulberry32(seed: number) {

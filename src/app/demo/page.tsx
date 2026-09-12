@@ -9,6 +9,7 @@ import {
   Coffee,
   Monitor,
   Clock3,
+  ExternalLink,
   Package,
   TrendingUp,
   Wallet,
@@ -367,75 +368,11 @@ function ActiveView({
       </div>
 
       {/* Demo dashboard */}
-      <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-6 backdrop-blur-xl sm:p-8">
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-              <system.icon className="h-6 w-6" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-white">{system.name}</h2>
-              <p className="text-sm text-white/60">{system.tagline}</p>
-            </div>
-          </div>
-          <Link
-            href="/signup"
-            className="group inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-xl shadow-primary/25 transition-all hover:shadow-2xl hover:brightness-110 active:scale-[0.98]"
-          >
-            ابدأ نسختك الحقيقية مجاناً
-            <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1 rtl:rotate-180" />
-          </Link>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {system.stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-5 transition-all hover:border-primary/40"
-            >
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <stat.icon className="h-5 w-5" />
-              </div>
-              <div className="text-2xl font-extrabold text-white">{stat.value}</div>
-              <div className="mt-1 text-sm text-white/60">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Table */}
-        <div className="mt-6 overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.03]">
-          <div className="border-b border-white/[0.08] px-5 py-4 font-semibold text-white">{system.tableTitle}</div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-white/[0.08] bg-white/[0.03] text-white/50">
-                  {system.rows[0].map((_, i) => (
-                    <th key={i} className="px-5 py-3 text-start font-medium">
-                      العمود {i + 1}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {system.rows.map((row, i) => (
-                  <tr key={i} className="border-b border-white/[0.06] transition-colors last:border-0 hover:bg-white/[0.03]">
-                    {row.map((cell, j) => (
-                      <td key={j} className={`px-5 py-3 text-white/80 ${j === 0 ? "font-semibold text-white" : ""}`}>
-                        {cell}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <p className="mt-6 text-center text-xs text-white/40">
-          البيانات المعروضة تجريبية لأغراض العرض فقط — نظامك الحقيقي يبدأ فور إنشاء حسابك.
-        </p>
-      </div>
+      {system.key === "grocery" ? (
+        <LiveEmbed system={system} />
+      ) : (
+        <StaticDashboard system={system} />
+      )}
 
       {/* CTA */}
       <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -451,6 +388,133 @@ function ActiveView({
         </Link>
       </div>
     </>
+  );
+}
+
+/* ── Live embed vs static demo dashboards ─────────────── */
+
+/** Systems whose real standalone app is embedded live via iframe. */
+const LIVE_EMBED_HREF: Record<string, string> = {
+  grocery: "/grocery",
+};
+
+function LiveEmbed({ system }: { system: SystemDef }) {
+  const href = LIVE_EMBED_HREF[system.key];
+  if (!href) return null;
+  return (
+    <div className="overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl">
+      <div className="flex flex-col gap-3 border-b border-white/[0.08] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <system.icon className="h-6 w-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-bold text-white">{system.name}</h2>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                النسخة الحية
+              </span>
+            </div>
+            <p className="text-xs text-white/60">
+              بيانات الدخول التجريبية: <span className="font-mono text-white/70">demo</span> /{" "}
+              <span className="font-mono text-white/70">demo123</span>
+            </p>
+          </div>
+        </div>
+        <a
+          href={LIVE_HREF[system.key]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:brightness-110 active:scale-[0.98]"
+        >
+          افتح في تبويب جديد
+          <ExternalLink className="h-4 w-4" />
+        </a>
+      </div>
+      <iframe
+        src={href}
+        title={system.name}
+        className="h-[560px] w-full bg-white sm:h-[680px] lg:h-[760px]"
+      />
+      <p className="border-t border-white/[0.08] px-5 py-3 text-center text-xs text-white/40">
+        البيانات المعروضة تجريبية لأغراض العرض فقط — نظامك الحقيقي يبدأ فور إنشاء حسابك.
+      </p>
+    </div>
+  );
+}
+
+function StaticDashboard({ system }: { system: SystemDef }) {
+  return (
+    <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-6 backdrop-blur-xl sm:p-8">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <system.icon className="h-6 w-6" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-white">{system.name}</h2>
+            <p className="text-sm text-white/60">{system.tagline}</p>
+          </div>
+        </div>
+        <Link
+          href="/signup"
+          className="group inline-flex items-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-xl shadow-primary/25 transition-all hover:shadow-2xl hover:brightness-110 active:scale-[0.98]"
+        >
+          ابدأ نسختك الحقيقية مجاناً
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1 rtl:rotate-180" />
+        </Link>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {system.stats.map((stat) => (
+          <div
+            key={stat.label}
+            className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-5 transition-all hover:border-primary/40"
+          >
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <stat.icon className="h-5 w-5" />
+            </div>
+            <div className="text-2xl font-extrabold text-white">{stat.value}</div>
+            <div className="mt-1 text-sm text-white/60">{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Table */}
+      <div className="mt-6 overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.03]">
+        <div className="border-b border-white/[0.08] px-5 py-4 font-semibold text-white">{system.tableTitle}</div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-white/[0.08] bg-white/[0.03] text-white/50">
+                {system.rows[0].map((_, i) => (
+                  <th key={i} className="px-5 py-3 text-start font-medium">
+                    العمود {i + 1}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {system.rows.map((row, i) => (
+                <tr key={i} className="border-b border-white/[0.06] transition-colors last:border-0 hover:bg-white/[0.03]">
+                  {row.map((cell, j) => (
+                    <td key={j} className={`px-5 py-3 text-white/80 ${j === 0 ? "font-semibold text-white" : ""}`}>
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p className="mt-6 text-center text-xs text-white/40">
+        البيانات المعروضة تجريبية لأغراض العرض فقط — نظامك الحقيقي يبدأ فور إنشاء حسابك.
+      </p>
+    </div>
   );
 }
 

@@ -12,7 +12,7 @@ function createClient(): PrismaClient {
   // Supabase's session-mode pooler only allows ~15 concurrent sessions.
   const adapter = new PrismaPg(
     { connectionString: pgUrl, max: 4, idleTimeoutMillis: 15_000, connectionTimeoutMillis: 10_000 },
-    { schema: "public" },
+    { schema: "grocery" },
   );
   return new PrismaClient({ adapter, log: ["warn", "error"] });
 }

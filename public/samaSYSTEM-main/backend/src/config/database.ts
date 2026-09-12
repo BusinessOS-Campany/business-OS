@@ -6,7 +6,8 @@ function createPrisma() {
   if (!env.DATABASE_URL) {
     throw new Error('DATABASE_URL is not set in Vercel env vars');
   }
-  const adapter = new PrismaPg({ connectionString: env.DATABASE_URL });
+  const pgUrl = env.DATABASE_URL.replace(/\?schema=[^&]*$/, "");
+  const adapter = new PrismaPg({ connectionString: pgUrl }, { schema: "sama" });
   return new PrismaClient({
     adapter,
     log: env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],

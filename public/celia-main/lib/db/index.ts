@@ -14,6 +14,12 @@ const pool = new Pool({
   ssl: requiresTls ? { rejectUnauthorized: false } : undefined,
 });
 
+const SCHEMA = process.env.DB_SCHEMA ?? "celia";
+
+pool.on("connect", (client) => {
+  client.query(`SET search_path TO ${SCHEMA}, public`).catch(() => {});
+});
+
 export const db = drizzle(pool, { schema });
 
 export type DB = typeof db;
