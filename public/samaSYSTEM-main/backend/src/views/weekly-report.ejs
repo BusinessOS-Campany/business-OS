@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقرير الاسبوعي - مركز سما</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', Arial, sans-serif;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8ecf8 100%);
+            direction: rtl;
+            padding: 20px;
+            color: #1a1a2e;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+        }
+        .header-left { text-align: left; font-size: 10px; font-weight: 600; line-height: 1.6; opacity: 0.9; letter-spacing: 0.5px; }
+        .header-right { text-align: right; font-size: 13px; font-weight: 700; line-height: 1.6; }
+        .header-center { text-align: center; }
+        .logo-wrapper {
+            width: 52px; height: 52px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        .logo-wrapper img { width: 38px; height: 38px; object-fit: cover; border-radius: 50%; }
+        .title-section {
+            background: linear-gradient(135deg, #059669, #10b981, #34d399);
+            color: #fff;
+            text-align: center;
+            padding: 18px 20px;
+            font-size: 20px;
+            font-weight: 800;
+            position: relative;
+        }
+        .title-section::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #fbbf24, #f59e0b, #fbbf24);
+        }
+        .title-section p { margin: 0; color: #fff; }
+        .title-section .sub {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-top: 6px;
+        }
+        .summary-row {
+            display: flex;
+            gap: 10px;
+            padding: 14px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .summary-card {
+            flex: 1;
+            background: #fff;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #e2e8f0;
+        }
+        .summary-card .label { font-size: 10px; color: #64748b; font-weight: 600; }
+        .summary-card .value { font-size: 17px; font-weight: 800; margin-top: 2px; direction: ltr; }
+        .sc-inc .value { color: #059669; }
+        .sc-exp .value { color: #dc2626; }
+        .sc-net .value { color: #7c3aed; }
+        .table-wrap { padding: 0 0 8px; }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 13px;
+        }
+        thead th {
+            background: #f1f5f9;
+            color: #1e293b;
+            font-weight: 700;
+            padding: 10px 8px;
+            text-align: center;
+            font-size: 12px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        thead th:first-child { border-radius: 0 8px 0 0; }
+        thead th:last-child { border-radius: 8px 0 0 0; }
+        tbody td {
+            padding: 10px 8px;
+            text-align: center;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 13px;
+        }
+        tbody tr:last-child td { border-bottom: none; }
+        .cell-num {
+            color: #0369a1;
+            font-weight: 800;
+            width: 40px;
+        }
+        .cell-day {
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .cell-date {
+            color: #ea580c;
+            font-weight: 700;
+            direction: ltr;
+        }
+        .cell-income {
+            color: #059669;
+            font-weight: 700;
+            direction: ltr;
+            background: #f0fdf4;
+        }
+        .cell-expense {
+            color: #dc2626;
+            font-weight: 700;
+            direction: ltr;
+            background: #fef2f2;
+        }
+        .cell-net {
+            color: #7c3aed;
+            font-weight: 800;
+            direction: ltr;
+            background: #f3e8ff;
+        }
+        .cell-notes {
+            color: #94a3b8;
+        }
+        .total-section {
+            background: linear-gradient(135deg, #f3e8ff, #ede9fe);
+            border-top: 2px solid #c084fc;
+        }
+        .total-section td {
+            padding: 12px 8px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .total-label { color: #7c3aed; font-weight: 800; text-align: center; }
+        .total-inc {
+            color: #059669;
+            font-weight: 800;
+            font-size: 16px;
+            direction: ltr;
+            text-align: center;
+        }
+        .total-exp {
+            color: #dc2626;
+            font-weight: 800;
+            font-size: 16px;
+            direction: ltr;
+            text-align: center;
+        }
+        .total-net {
+            color: #7c3aed;
+            font-weight: 800;
+            font-size: 16px;
+            direction: ltr;
+            text-align: center;
+        }
+        .grand-final {
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border-top: 2px solid #fde68a;
+        }
+        .grand-final td { padding: 14px 8px; }
+        .grand-label { color: #92400e; font-weight: 800; text-align: center; font-size: 15px; }
+        .grand-value {
+            color: #7c3aed;
+            font-weight: 900;
+            font-size: 20px;
+            direction: ltr;
+            text-align: center;
+        }
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 18px 28px 22px;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-top: 1px solid #e2e8f0;
+        }
+        .footer div { font-weight: 600; color: #475569; text-align: center; font-size: 12px; }
+        .footer .line {
+            display: block;
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #94a3b8, transparent);
+            margin: 4px auto 0;
+        }
+        .footer .sign-line {
+            display: inline-block;
+            width: 120px;
+            border-bottom: 2px dashed #94a3b8;
+            margin-top: 6px;
+            padding-bottom: 3px;
+        }
+        .empty-state { padding: 20px; text-align: center; color: #94a3b8; font-size: 14px; }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .container { box-shadow: none; border-radius: 0; }
+            .header, .title-section, .total-section, .grand-final,
+            .summary-card, .summary-row, .cell-income, .cell-expense {
+                -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="header">
+        <div class="header-left">SAMA CENTER FOR<br>PHYSIOTHERAPY & REHABILITATION</div>
+        <div class="header-center">
+            <div class="logo-wrapper">
+                <img src="/assets/img/logos/center.png" alt="Logo" onerror="this.style.display='none'">
+            </div>
+        </div>
+        <div class="header-right">مركز سما للعلاج الطبيعي<br>وإعادة التأهيل</div>
+    </div>
+
+    <div class="title-section">
+        <p>التقرير الأسبوعي (الوارد والصادر اليومي للفترتين)</p>
+        <span class="sub"><%= weekLabel %></span>
+    </div>
+
+    <% 
+        let totalIncome = 0, totalExpense = 0;
+        weekData.forEach(d => { totalIncome += Number(d.income || 0); totalExpense += Number(d.expense || 0); });
+        let netTotal = totalIncome - totalExpense;
+    %>
+    <div class="summary-row">
+        <div class="summary-card sc-inc"><div class="label">إجمالي الوارد</div><div class="value"><%= totalIncome.toLocaleString('en-US') %></div></div>
+        <div class="summary-card sc-exp"><div class="label">إجمالي الصادر</div><div class="value"><%= totalExpense.toLocaleString('en-US') %></div></div>
+        <div class="summary-card sc-net"><div class="label">الصافي الأسبوعي</div><div class="value"><%= netTotal.toLocaleString('en-US') %></div></div>
+    </div>
+
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th style="width:40px">م</th>
+                <th>اليوم</th>
+                <th>التاريخ</th>
+                <th>الوارد</th>
+                <th>الصادر</th>
+                <th>الإجمالي بعد الصادر (وارد - صادر)</th>
+                <th>ملاحظات</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (weekData.length === 0) { %>
+                <tr><td colspan="7"><div class="empty-state">لا توجد بيانات لهذا الأسبوع</div></td></tr>
+            <% } else { %>
+                <% weekData.forEach((d, i) => { %>
+                    <tr>
+                        <td class="cell-num"><%= i + 1 %></td>
+                        <td class="cell-day"><%= d.day %></td>
+                        <td class="cell-date"><%= d.date %></td>
+                        <td class="cell-income"><%= Number(d.income || 0).toLocaleString('en-US') %></td>
+                        <td class="cell-expense"><%= Number(d.expense || 0).toLocaleString('en-US') %></td>
+                        <td class="cell-net"><%= (Number(d.income || 0) - Number(d.expense || 0)).toLocaleString('en-US') %></td>
+                        <td class="cell-notes">—</td>
+                    </tr>
+                <% }) %>
+            <% } %>
+        </tbody>
+    </table>
+    </div>
+
+    <table>
+        <tbody>
+            <tr class="total-section">
+                <td></td>
+                <td class="total-label">الإجمالي الأسبوعي</td>
+                <td></td>
+                <td class="total-inc"><%= totalIncome.toLocaleString('en-US') %></td>
+                <td class="total-exp"><%= totalExpense.toLocaleString('en-US') %></td>
+                <td class="total-net"><%= netTotal.toLocaleString('en-US') %></td>
+                <td></td>
+            </tr>
+            <tr class="grand-final">
+                <td></td>
+                <td colspan="3" class="grand-label">صافي الأسبوع (وارد - صادر)</td>
+                <td colspan="3" class="grand-value"><%= netTotal.toLocaleString('en-US') %></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <div>إدارة المركز<span class="sign-line"></span></div>
+        <div style="text-align:center;font-size:10px;color:#94a3b8;">
+            مركز سما للعلاج الطبيعي وإعادة التأهيل
+            <span class="line"></span>
+        </div>
+        <div>السكرتارية<span class="sign-line"></span></div>
+    </div>
+
+</div>
+<% if (autoprint !== false) { %><script>window.onload=function(){window.print()}</script><% } %>
+</body>
+</html>

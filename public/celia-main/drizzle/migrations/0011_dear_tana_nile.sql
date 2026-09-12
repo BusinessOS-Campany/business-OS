@@ -1,0 +1,1 @@
+ALTER TABLE "hobani_income" ALTER COLUMN "card_type" DROP NOT NULL;

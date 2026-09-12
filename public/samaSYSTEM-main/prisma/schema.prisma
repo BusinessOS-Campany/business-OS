@@ -1,0 +1,215 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  SUPERVISOR
+  RECEPTIONIST
+  THERAPIST
+  PATIENT
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  phone     String?
+  role      Role     @default(RECEPTIONIST)
+  isActive  Boolean  @default(true)
+  permissions String[] @default([])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  conversations  ConversationParticipant[]
+  sentMessages   Message[]
+
+  @@map("users")
+}
+
+model Conversation {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  conversationId String       @map("conversation_id")
+  userId         String       @map("user_id")
+  joinedAt       DateTime     @default(now()) @map("joined_at")
+  archivedAt     DateTime?    @map("archived_at")
+
+  conversation  Conversation @relation(fields: [conversationId], references: [id])
+  user          User         @relation(fields: [userId], references: [id])
+
+  @@unique([conversationId, userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             String    @id @default(uuid())
+  conversationId String    @map("conversation_id")
+  senderId       String    @map("sender_id")
+  content        String
+  attachment     String?   @map("attachment")
+  attachmentName String?   @map("attachment_name")
+  attachmentSize Int?      @map("attachment_size")
+  contentType    String?   @map("content_type")
+  readAt         DateTime? @map("read_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+  sender       User         @relation(fields: [senderId], references: [id])
+
+  @@map("messages")
+}
+
+model Patient {
+  id               String    @id @default(uuid())
+  serialNumber     Int       @default(0) @map("serial_number")
+  firstName        String?   @map("first_name")
+  lastName         String?   @map("last_name")
+  phone            String?
+  gender           String?
+  dateOfBirth      DateTime? @map("date_of_birth")
+  examType         String?   @map("exam_type")
+  price            Float?
+  registrationDate DateTime? @map("registration_date")
+  notes            String?
+  speacial         String?
+  status           String?   @default("progress")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
+
+  @@map("patients")
+}
+
+model Service {
+  id        String    @id @default(uuid())
+  name      String    @unique @map("name")
+  price     Float     @map("price")
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("services")
+}
+
+model Employee {
+  id         String    @id @default(uuid())
+  name       String    @map("name")
+  department String?   @map("department")
+  phone      String?
+  salary     Float?
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+
+  @@map("employees")
+}
+
+model Appointment {
+  id        String    @id @default(uuid())
+  patient   String    @map("patient")
+  phone     String?   @map("phone")
+  therapist String?   @map("therapist")
+  date      String?   @map("date")
+  status    String?   @default("pending")
+  notes     String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("appointments")
+}
+
+model Session {
+  id          String    @id @default(uuid())
+  fullname    String    @map("fullname")
+  sessionType String    @map("session_type")
+  speacial    String?   @map("speacial")
+  status      String?   @default("progress")
+  sessionDate DateTime? @map("session_date")
+  price       Float?
+  notes       String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  @@map("sessions")
+}
+
+model SalaryAdvance {
+  id        String    @id @default(uuid())
+  employee  String    @map("employee")
+  specialty String?   @map("specialty")
+  amount    Float     @map("amount")
+  date      String    @map("advance_date")
+  notes     String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("salary_advances")
+}
+
+model Expense {
+  id            String    @id @default(uuid())
+  category      String    @map("category")
+  amount        Float     @map("amount")
+  date          String    @map("date")
+  paymentMethod String?   @map("payment_method")
+  notes         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  @@map("expenses")
+}
+
+model Notification {
+  id        String    @id @default(uuid())
+  type      String
+  data      String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  readAt    DateTime? @map("read_at")
+
+  @@map("notifications")
+}
+
+model CalendarEvent {
+  id          String    @id @default(uuid())
+  eventName   String    @map("event_name")
+  date        String    @map("date")
+  endDate     String?   @map("end_date")
+  type        String    @map("type")
+  startTime   String?   @map("start_time")
+  endTime     String?   @map("end_time")
+  location    String?
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  @@map("calendar_events")
+}

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="<%= lang === 'ar' ? 'ar' : 'en' %>" dir="<%= dir %>">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= t('invoices.report.title') %></title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: <%= dir === 'rtl' ? '"Cairo", "Traditional Arabic", Arial' : '"Segoe UI", Arial' %>, sans-serif;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e8ecf8 100%);
+    padding: 24px;
+    color: #1a1a2e;
+  }
+  .page {
+    max-width: 900px;
+    margin: auto;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+    overflow: hidden;
+  }
+  .header {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: #fff;
+  }
+  .center-name { flex: 1; text-align: center; }
+  .center-name h2 { font-size: 20px; font-weight: 800; color: #fff; }
+  .center-name .english-name { font-size: 11px; letter-spacing: 0.4px; color: rgba(255,255,255,0.75); margin-top: 4px; line-height: 1.5; }
+  .logo .logo-wrapper {
+    width: 56px; height: 56px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid rgba(255,255,255,0.35);
+  }
+  .logo img { width: 42px; height: 42px; object-fit: cover; border-radius: 50%; }
+  .organization strong { font-size: 15px; white-space: nowrap; color: #fff; font-weight: 700; }
+  .title-section {
+    background: linear-gradient(135deg, #06B6D4, #0284C7);
+    color: #fff;
+    text-align: center;
+    padding: 12px 20px;
+    font-size: 17px;
+    font-weight: 800;
+    position: relative;
+  }
+  .title-section::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #67E8F9, #06B6D4, #67E8F9);
+  }
+  .meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #64748b;
+    padding: 10px 20px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .meta strong { color: #1e293b; }
+  .table-wrap { padding: 14px 20px; }
+  table.main-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  table.main-table th {
+    background: linear-gradient(135deg, #06B6D4, #0284C7);
+    color: #fff;
+    font-weight: 700;
+    padding: 10px 10px;
+    font-size: 12px;
+    text-align: center;
+    border-left: 1px solid rgba(255,255,255,0.25);
+  }
+  table.main-table th:last-child { border-left: none; }
+  table.main-table td {
+    border-bottom: 1px solid #f1f5f9;
+    border-left: 1px solid #f1f5f9;
+    padding: 9px 10px;
+    text-align: center;
+    color: #1e293b;
+  }
+  table.main-table td:last-child { border-left: none; }
+  table.main-table tbody tr:nth-child(even) { background: #ecfeff; }
+  table.main-table tbody tr:hover { background: #cffafe; }
+  table.main-table tbody tr:last-child td { border-bottom: none; }
+  .type-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+  }
+  .type-badge.water { background: #06B6D4; color: #fff; }
+  .type-badge.electricity { background: #FCE7F3; color: #DB2777; }
+  .amount-total {
+    font-weight: 800;
+    color: #000;
+    background: #fff !important;
+  }
+  .total-row td {
+    background: linear-gradient(135deg, #06B6D4, #0284C7);
+    color: #fff;
+    font-weight: 800;
+    font-size: 13px;
+    border-bottom: none !important;
+  }
+  .total-row td.amount-total { background: #fff; color: #000; }
+  .summary {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 20px 16px;
+    flex-wrap: wrap;
+  }
+  .summary-box {
+    flex: 1;
+    min-width: 170px;
+    max-width: 240px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    text-align: center;
+    background: #f8fafc;
+  }
+  .summary-title { font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 4px; }
+  .summary-value { font-size: 19px; font-weight: 800; direction: ltr; }
+  .summary-box.total-box .summary-value { color: #0284C7; }
+  .summary-box.advances-box .summary-value { color: #7c3aed; }
+  .invoice-total {
+    flex: 1;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 800;
+    border-radius: 10px;
+    padding: 16px;
+    color: #fff;
+    background: linear-gradient(135deg, #06B6D4, #0284C7);
+    box-shadow: 0 6px 18px rgba(2,132,199,0.35);
+  }
+  .invoice-total span { direction: ltr; display: inline-block; }
+  .empty {
+    text-align: center;
+    color: #94a3b8;
+    padding: 30px 0;
+    font-size: 14px;
+  }
+  .footer {
+    text-align: center;
+    font-size: 12px;
+    color: #64748b;
+    padding: 10px 20px 14px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-weight: 600;
+  }
+  .print-btn {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 32px;
+    background: linear-gradient(135deg, #06B6D4, #0284C7);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(2,132,199,0.35);
+  }
+  .print-btn:hover { filter: brightness(1.05); }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .page { box-shadow: none; margin: 0; padding: 0; max-width: 100%; border-radius: 0; }
+    .print-btn { display: none; }
+    table.main-table th,
+    table.main-table .total-row td,
+    table.main-table tbody tr:nth-child(even),
+    table.main-table td.amount-total,
+    .title-section,
+    .invoice-total {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  }
+  @media (max-width: 600px) {
+    body { padding: 12px; }
+    .header { padding: 12px 14px; }
+    .logo .logo-wrapper { width: 44px; height: 44px; }
+    .logo img { width: 32px; height: 32px; }
+    .center-name h2 { font-size: 15px; }
+    table.main-table th, table.main-table td { padding: 7px 5px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="center-name">
+      <h2><%= t('invoices.report.centerName') %></h2>
+      <div class="english-name"><%= t('invoices.report.centerNameEn') %></div>
+    </div>
+    <div class="logo">
+      <div class="logo-wrapper">
+        <img src="/assets/img/logos/center.png" alt="Logo" onerror="this.style.display='none'">
+      </div>
+    </div>
+    <div class="organization">
+      <strong><%= t('invoices.report.management') %></strong>
+    </div>
+  </div>
+
+  <div class="title-section">
+    <%= t('invoices.report.title') %>
+  </div>
+
+  <div class="meta">
+    <% if (month) { %><span><%= t('invoices.report.selectMonth') %>: <strong><%= month %></strong></span><% } %>
+    <span><%= t('invoices.report.generated') %>: <strong><%= generatedDate %></strong></span>
+  </div>
+
+  <% if (rows.length > 0) { %>
+  <div class="table-wrap">
+  <table class="main-table">
+    <thead>
+      <tr>
+        <th><%= t('invoices.report.num') %></th>
+        <th><%= t('invoices.report.date') %></th>
+        <th><%= t('invoices.report.day') %></th>
+        <th><%= t('invoices.report.type') %></th>
+        <th><%= t('invoices.report.amount') %></th>
+        <th><%= t('invoices.report.signature') %></th>
+        <th><%= t('invoices.report.notes') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% rows.forEach(function(r, i) { %>
+      <tr>
+        <td><%= i + 1 %></td>
+        <td><%= r.dateFormatted %></td>
+        <td><%= r.day %></td>
+        <td><span class="type-badge <%= r.type === 'water' ? 'water' : 'electricity' %>"><%= t(r.type === 'water' ? 'invoices.type.water' : 'invoices.type.electricity') %></span></td>
+        <td><%= r.amount.toLocaleString('en-US') %></td>
+        <td></td>
+        <td><%= r.notes || '' %></td>
+      </tr>
+      <% }); %>
+      <tr class="total-row">
+        <td colspan="4"><%= t('invoices.report.total') %></td>
+        <td class="amount-total"><%= total.toLocaleString('en-US') %></td>
+        <td></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="summary">
+    <div class="summary-box total-box">
+      <div class="summary-title"><%= t('invoices.report.total') %></div>
+      <div class="summary-value"><%= total.toLocaleString('en-US') %></div>
+    </div>
+    <div class="summary-box advances-box">
+      <div class="summary-title"><%= t('invoices.report.totalAdvances') %></div>
+      <div class="summary-value"><%= total.toLocaleString('en-US') %></div>
+    </div>
+    <div class="invoice-total">
+      <%= t('invoices.report.grandTotal') %>: <span><%= total.toLocaleString('en-US') %></span>
+    </div>
+  </div>
+  <% } else { %>
+  <p class="empty"><%= t('invoices.report.noInvoices') %></p>
+  <% } %>
+
+  <div class="footer">
+    <%= t('invoices.report.management') %>
+  </div>
+
+  <button class="print-btn" onclick="window.print()"><%= t('invoices.report.print') %></button>
+</div>
+</body>
+</html>
