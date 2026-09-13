@@ -9,8 +9,11 @@ async function createUser(
   profile: { name: string; email: string; role: string },
 ) {
   const existing = await db.query.users.findFirst({ where: eq(users.username, key.username) });
+
   if (existing) {
-    console.log(`[seed] user ${key.username} already exists, skipping`);
+    const passwordHash = await hashPassword(key.password);
+    await db.update(accounts).set({ password: passwordHash }).where(eq(accounts.userId, existing.id));
+    console.log(`[seed] user ${key.username} password updated`);
     return;
   }
 
@@ -45,7 +48,7 @@ async function createUser(
 
 async function main() {
   await createUser(
-    { username: "admin", password: "admin" },
+    { username: "admin", password: "demo123" },
     { name: "المدير", email: "admin@celia.local", role: "admin" },
   );
   await createUser(

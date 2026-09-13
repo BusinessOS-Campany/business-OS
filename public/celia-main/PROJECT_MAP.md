@@ -10,7 +10,7 @@
 | المرحلة | الحالة | ملخص |
 |---------|--------|------|
 | **M0 — Scaffold + DB** | ✅ مكتمل | create-next-app (Next 16.3.0)، Drizzle + PG16، DB `celia`، اتصال في `.env` |
-| **M1 — Auth** | ✅ مكتمل | Better Auth 1.6.26 (email + **username plugin**)، Drizzle adapter، جلسات، Proxy، سيدر `admin/admin` |
+| **M1 — Auth** | ✅ مكتمل | Better Auth 1.6.26 (email + **username plugin**)، Drizzle adapter، جلسات، Proxy، سيدر `demo/demo123` |
 | **M2 — Login page** | ✅ مكتمل | صفحة `/login` (RTL، Cairo، خلفية `celiaLogin.jfif`)، `/` محمية، Sign-out، تحقق End-to-End |
 | **M3 — Dashboard** | ✅ مكتمل | هيكل تطبيق (Sidebar + Topbar)، 4 بطاقات إحصائية، بطاقات الإيرادات، مراقبة 24 ساعة + مقارنات، API `/api/dashboard/stats` |
 | **M4 — HobaniAdd page** | ✅ مكتمل | صفحة `/hobaniAdd` + نموذج دخل الحوباني (Zod) + API `POST /api/hobani/income` + جدول `hobani_income` |
@@ -25,7 +25,7 @@
 | **M13 — أداء التنقل (Instant Nav)** | ✅ مكتمل | زمن التنقل بين صفحات اللوحة ~26 صفحة: (1) مجموعة مسارات `(dashboard)` بتخطيط `layout.tsx` خادمي ثابت يستدعي `requireUser`+`getUserPermissions` **مرة واحدة** ويُحمّل `DashboardShell` — الـ Shell (Sidebar+Header) يبقى محمّلاً عبر التنقل بدل إعادة إنشائه في كل صفحة؛ (2) `loading.tsx` (boundary) يجعل المسارات الديناميكية قابلة للـ prefetch (بدونه يُتخطّى الـ prefetch لكل المسارات الديناميكية)؛ (3) `experimental.staleTimes { dynamic: 30, static: 60 }` لزمن حياة كاش العميل؛ (4) `router.prefetch(href)` لكل روابط القائمة في `sidebar.tsx` عند أول تحميل؛ (5) مكوّن `PageHeader` موحّد (title + breadcrumb + today label) يحل محل منطق العنوان داخل الـ Shell |
 
 **التحقق (Production build + خادم حي):**
-- `POST /api/auth/sign-in/username` (admin/admin) → 200 + توكن + `celia.session_token` (HttpOnly)
+- `POST /api/auth/sign-in/username` (demo/demo123) → 200 + توكن + `celia.session_token` (HttpOnly)
 - `GET /` بلا جلسة → 307 إلى `/login?next=/`؛ بجلسة → 200
 - `GET /api/dashboard/stats` بجلسة → 200؛ بلا جلسة → 401
 - خطأ كلمة المرور → 401 `INVALID_USERNAME_OR_PASSWORD`؛ `POST /api/auth/sign-out` → `{"success":true}`
@@ -205,7 +205,7 @@ drizzle/
   config.ts                # drizzle-kit pg
   migrations/0000..0010_*.sql # مُطبَّقة ✅ (0006: جداول التحويلات؛ 0007: nas_share_id + current_speed؛ 0008/0009: source_path؛ 0010: products + product_sales)
 scripts/
-  seed.ts                  # سيدر idempotent: admin/admin (role=admin)
+  seed.ts                  # سيدر idempotent: demo/demo123 (role=admin)
 .env                       # DATABASE_URL + BETTER_AUTH_* + NAS_ENC_KEY (مُهمَل في git)
 ```
 
