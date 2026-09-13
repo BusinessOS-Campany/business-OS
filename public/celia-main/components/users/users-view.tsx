@@ -35,7 +35,7 @@ export function UsersView({ initialSummary }: UsersViewProps) {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/users", { cache: "no-store" });
+      const res = await fetch("/celia/api/users", { cache: "no-store" });
       if (res.ok) {
         const data = (await res.json()) as UsersSummary;
         setSummary(data);
@@ -49,7 +49,7 @@ export function UsersView({ initialSummary }: UsersViewProps) {
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch(`/api/users/${row.id}`, {
+      const res = await fetch(`/celia/api/users/${row.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -74,7 +74,7 @@ export function UsersView({ initialSummary }: UsersViewProps) {
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch(`/api/users/${row.id}`, {
+      const res = await fetch(`/celia/api/users/${row.id}`, {
         method: "DELETE",
         headers: { "Accept-Language": locale },
       });

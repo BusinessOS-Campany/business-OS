@@ -112,7 +112,7 @@ export function UserDialog({ user, onClose, onSuccess }: UserDialogProps) {
     setLoading(true);
 
     try {
-      const res = await fetch(user ? `/api/users/${user.id}` : "/api/users", {
+      const res = await fetch(user ? `/celia/api/users/${user.id}` : "/celia/api/users", {
         method: user ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",

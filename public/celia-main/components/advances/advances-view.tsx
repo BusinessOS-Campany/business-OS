@@ -68,7 +68,7 @@ export function AdvancesView({ initialSummary, employees }: AdvancesViewProps) {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/advances", { cache: "no-store" });
+      const res = await fetch("/celia/api/advances", { cache: "no-store" });
       if (res.ok) {
         const data = (await res.json()) as AdvancesSummary;
         setSummary(data);
@@ -82,7 +82,7 @@ export function AdvancesView({ initialSummary, employees }: AdvancesViewProps) {
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch(`/api/advances/${row.id}`, {
+      const res = await fetch(`/celia/api/advances/${row.id}`, {
         method: "DELETE",
         headers: { "Accept-Language": locale },
       });

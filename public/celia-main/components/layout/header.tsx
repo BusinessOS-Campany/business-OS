@@ -53,7 +53,7 @@ export function Header({ user, onToggleSidebar, onToggleCollapsed }: HeaderProps
 
   const loadNotifications = useCallback(async () => {
     try {
-      const response = await fetch("/api/notifications", { cache: "no-store" });
+      const response = await fetch("/celia/api/notifications", { cache: "no-store" });
       if (!response.ok) return;
       const data = await response.json();
       setNotifications(Array.isArray(data.items) ? data.items : []);
@@ -65,7 +65,7 @@ export function Header({ user, onToggleSidebar, onToggleCollapsed }: HeaderProps
 
   const markNotificationsRead = useCallback(async () => {
     try {
-      await fetch("/api/notifications/read", {
+      await fetch("/celia/api/notifications/read", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: "{}",

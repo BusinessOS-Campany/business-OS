@@ -92,7 +92,7 @@ export function AddExpenseForm({ expense, onSuccess, onClose }: AddExpenseFormPr
     setLoading(true);
 
     try {
-      const res = await fetch(expense ? `/api/expenses/${expense.id}` : "/api/expenses", {
+      const res = await fetch(expense ? `/celia/api/expenses/${expense.id}` : "/celia/api/expenses", {
         method: expense ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",

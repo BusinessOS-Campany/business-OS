@@ -14,7 +14,7 @@ export function Logo({ className, showText = true, dark = false }: LogoProps) {
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
       <img
-        src="/cafe-os-logo.svg"
+        src="/celia/cafe-os-logo.svg"
         alt={t.brand.logoAlt}
         className="h-10 w-auto shrink-0 rounded-lg object-contain"
       />

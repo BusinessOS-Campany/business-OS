@@ -40,7 +40,7 @@ export function NotificationsView() {
       try {
         const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
         if (filter === "unread") params.set("filter", "unread");
-        const response = await fetch(`/api/notifications?${params.toString()}`, {
+        const response = await fetch(`/celia/api/notifications?${params.toString()}`, {
           cache: "no-store",
         });
         if (!response.ok) return;
@@ -74,7 +74,7 @@ export function NotificationsView() {
   async function markAllRead() {
     setMessage(null);
     try {
-      const response = await fetch("/api/notifications/read", {
+      const response = await fetch("/celia/api/notifications/read", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: "{}",

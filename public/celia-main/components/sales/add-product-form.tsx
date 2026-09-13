@@ -98,7 +98,7 @@ export function AddProductForm({ products, sale, onSuccess, onClose }: AddProduc
     setLoading(true);
 
     try {
-      const res = await fetch(sale ? `/api/sales/${sale.id}` : "/api/sales", {
+      const res = await fetch(sale ? `/celia/api/sales/${sale.id}` : "/celia/api/sales", {
         method: sale ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",

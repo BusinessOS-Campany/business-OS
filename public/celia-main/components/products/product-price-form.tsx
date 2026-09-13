@@ -61,7 +61,7 @@ export function ProductPriceForm({ initialData, onSuccess, onClose }: ProductPri
     setLoading(true);
 
     try {
-      const res = await fetch(initialData ? `/api/products/${initialData.id}` : "/api/products", {
+      const res = await fetch(initialData ? `/celia/api/products/${initialData.id}` : "/celia/api/products", {
         method: initialData ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",

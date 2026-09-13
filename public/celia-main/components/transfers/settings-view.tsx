@@ -44,8 +44,8 @@ export function SettingsView() {
   const load = useCallback(async () => {
     try {
       const [nasResponse, agentsResponse] = await Promise.all([
-        fetch("/api/nas", { cache: "no-store" }),
-        fetch("/api/agents", { cache: "no-store" }),
+        fetch("/celia/api/nas", { cache: "no-store" }),
+        fetch("/celia/api/agents", { cache: "no-store" }),
       ]);
       if (!nasResponse.ok || !agentsResponse.ok) throw new Error("FETCH_FAILED");
       const nasJson = await nasResponse.json();
@@ -85,7 +85,7 @@ export function SettingsView() {
     setError(null);
     setMessage(null);
     try {
-      const response = await fetch("/api/nas/servers", {
+      const response = await fetch("/celia/api/nas/servers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ host: value }),
@@ -113,7 +113,7 @@ export function SettingsView() {
     setError(null);
     setMessage(null);
     try {
-      const response = await fetch("/api/nas", {
+      const response = await fetch("/celia/api/nas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -148,7 +148,7 @@ export function SettingsView() {
 
   async function toggleActive(share: NasShare) {
     try {
-      const response = await fetch(`/api/nas/${share.id}`, {
+      const response = await fetch(`/celia/api/nas/${share.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isActive: !share.isActive }),
@@ -162,7 +162,7 @@ export function SettingsView() {
 
   async function deleteShare(id: string) {
     try {
-      const response = await fetch(`/api/nas/${id}`, { method: "DELETE" });
+      const response = await fetch(`/celia/api/nas/${id}`, { method: "DELETE" });
       if (!response.ok) throw new Error("DELETE_FAILED");
       await load();
     } catch {

@@ -50,7 +50,7 @@ export default function LoginPage() {
         >
           <div className="mx-auto mb-8 flex size-24 items-center justify-center rounded-full bg-white/10 p-2 shadow-inner ring-1 ring-white/30">
             <img
-              src="/cafe-os-logo.svg"
+              src="/celia/cafe-os-logo.svg"
               alt={t.brand.logoAlt}
               className="size-full rounded-full object-contain"
             />

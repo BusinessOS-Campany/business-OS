@@ -42,7 +42,7 @@ export function HobaniTotalsView({ initialRows }: HobaniTotalsViewProps) {
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch("/api/hobani/totals");
+      const res = await fetch("/celia/api/hobani/totals");
       if (res.ok) {
         const data = (await res.json()) as { rows: (Omit<HobaniTotalRow, "day"> & { day: string })[] };
         setRows(data.rows.map((r) => ({ ...r, day: new Date(r.day) })));
@@ -68,7 +68,7 @@ export function HobaniTotalsView({ initialRows }: HobaniTotalsViewProps) {
   async function confirmDeleteGroup(row: HobaniTotalRow): Promise<boolean> {
     setMessage(null);
     try {
-      const res = await fetch("/api/hobani/income", {
+      const res = await fetch("/celia/api/hobani/income", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

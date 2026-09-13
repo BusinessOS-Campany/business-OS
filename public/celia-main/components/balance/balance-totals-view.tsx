@@ -50,7 +50,7 @@ export function BalanceTotalsView({ initialSummary }: BalanceTotalsViewProps) {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/balance/charge");
+      const res = await fetch("/celia/api/balance/charge");
       if (res.ok) {
         const data = (await res.json()) as BalanceChargesSummary;
         setSummary(data);
@@ -79,7 +79,7 @@ export function BalanceTotalsView({ initialSummary }: BalanceTotalsViewProps) {
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch(`/api/balance/charge/${row.id}`, {
+      const res = await fetch(`/celia/api/balance/charge/${row.id}`, {
         method: "DELETE",
         headers: { "Accept-Language": locale },
       });

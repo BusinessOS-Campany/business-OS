@@ -68,7 +68,7 @@ export function ProductsView({ initialRows, products }: ProductsViewProps) {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/sales", { cache: "no-store" });
+      const res = await fetch("/celia/api/sales", { cache: "no-store" });
       if (res.ok) {
         const data = (await res.json()) as { rows: ProductSaleRow[] };
         setRows(data.rows);
@@ -84,7 +84,7 @@ export function ProductsView({ initialRows, products }: ProductsViewProps) {
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch(`/api/sales/${row.id}`, {
+      const res = await fetch(`/celia/api/sales/${row.id}`, {
         method: "DELETE",
         headers: { "Accept-Language": locale },
       });

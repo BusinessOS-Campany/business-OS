@@ -73,7 +73,7 @@ export function EmployeesView({ initialSummary }: EmployeesViewProps) {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/employees", { cache: "no-store" });
+      const res = await fetch("/celia/api/employees", { cache: "no-store" });
       if (res.ok) {
         const data = (await res.json()) as EmployeesSummary;
         setSummary(data);
@@ -87,7 +87,7 @@ export function EmployeesView({ initialSummary }: EmployeesViewProps) {
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch(`/api/employees/${row.id}`, {
+      const res = await fetch(`/celia/api/employees/${row.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -112,7 +112,7 @@ export function EmployeesView({ initialSummary }: EmployeesViewProps) {
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch(`/api/employees/${row.id}`, {
+      const res = await fetch(`/celia/api/employees/${row.id}`, {
         method: "DELETE",
         headers: { "Accept-Language": locale },
       });

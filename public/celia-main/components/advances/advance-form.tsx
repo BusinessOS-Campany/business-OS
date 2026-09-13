@@ -104,7 +104,7 @@ export function AdvanceForm({
     setLoading(true);
 
     try {
-      const res = await fetch(advance ? `/api/advances/${advance.id}` : "/api/advances", {
+      const res = await fetch(advance ? `/celia/api/advances/${advance.id}` : "/celia/api/advances", {
         method: advance ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",

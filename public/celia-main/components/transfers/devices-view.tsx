@@ -29,8 +29,8 @@ export function DevicesView() {
   const load = useCallback(async () => {
     try {
       const [deviceResponse, agentResponse] = await Promise.all([
-        fetch("/api/transfer-devices", { cache: "no-store" }),
-        fetch("/api/agents", { cache: "no-store" }),
+        fetch("/celia/api/transfer-devices", { cache: "no-store" }),
+        fetch("/celia/api/agents", { cache: "no-store" }),
       ]);
       if (!deviceResponse.ok || !agentResponse.ok) throw new Error("FETCH_FAILED");
       const devicesJson = await deviceResponse.json();

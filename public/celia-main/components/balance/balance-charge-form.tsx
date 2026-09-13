@@ -60,7 +60,7 @@ export function BalanceChargeForm({ initialData, onSuccess, onClose }: BalanceCh
 
     try {
       const res = await fetch(
-        initialData ? `/api/balance/charge/${initialData.id}` : "/api/balance/charge",
+        initialData ? `/celia/api/balance/charge/${initialData.id}` : "/celia/api/balance/charge",
         {
           method: initialData ? "PUT" : "POST",
           headers: {

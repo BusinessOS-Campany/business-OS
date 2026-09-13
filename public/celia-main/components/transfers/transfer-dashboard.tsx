@@ -69,7 +69,7 @@ export function TransferDashboard() {
 
   const load = useCallback(async () => {
     try {
-      const response = await fetch("/api/dashboard/transfers", { cache: "no-store" });
+      const response = await fetch("/celia/api/dashboard/transfers", { cache: "no-store" });
       if (!response.ok) throw new Error("FETCH_FAILED");
       const json = await response.json();
       setData(json);

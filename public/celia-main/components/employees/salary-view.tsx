@@ -25,7 +25,7 @@ export function SalaryView({ initialSummary }: SalaryViewProps) {
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch("/api/employees", { cache: "no-store" });
+      const res = await fetch("/celia/api/employees", { cache: "no-store" });
       if (res.ok) {
         const data = (await res.json()) as EmployeesSummary;
         setSummary(data);
@@ -60,7 +60,7 @@ export function SalaryView({ initialSummary }: SalaryViewProps) {
     setSavingId(row.id);
     setMessage(null);
     try {
-      const res = await fetch(`/api/employees/${row.id}`, {
+      const res = await fetch(`/celia/api/employees/${row.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

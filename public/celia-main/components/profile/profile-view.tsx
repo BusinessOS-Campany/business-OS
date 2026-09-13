@@ -114,7 +114,7 @@ export function ProfileView({ initialProfile }: ProfileViewProps) {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/profile", {
+      const res = await fetch("/celia/api/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

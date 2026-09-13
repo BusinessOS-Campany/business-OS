@@ -81,7 +81,7 @@ export function HobaniIncomeForm({ initialData, onSuccess, onClose }: HobaniInco
     setLoading(true);
 
     try {
-      const url = initialData ? `/api/hobani/income/${initialData.id}` : "/api/hobani/income";
+      const url = initialData ? `/celia/api/hobani/income/${initialData.id}` : "/celia/api/hobani/income";
       const res = await fetch(url, {
         method: initialData ? "PUT" : "POST",
         headers: {

@@ -80,7 +80,7 @@ export function EmployeeForm({ initialData, onSuccess, onClose }: EmployeeFormPr
     setLoading(true);
 
     try {
-      const res = await fetch(initialData ? `/api/employees/${initialData.id}` : "/api/employees", {
+      const res = await fetch(initialData ? `/celia/api/employees/${initialData.id}` : "/celia/api/employees", {
         method: initialData ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",

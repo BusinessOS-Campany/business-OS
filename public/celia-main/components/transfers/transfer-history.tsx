@@ -27,7 +27,7 @@ export function TransferHistory() {
       params.set("limit", "200");
       if (status) params.set("status", status);
       if (search) params.set("search", search);
-      const response = await fetch(`/api/transfers?${params.toString()}`, { cache: "no-store" });
+      const response = await fetch(`/celia/api/transfers?${params.toString()}`, { cache: "no-store" });
       if (!response.ok) throw new Error("FETCH_FAILED");
       const json = await response.json();
       setJobs(json.jobs ?? []);

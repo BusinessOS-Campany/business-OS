@@ -73,7 +73,7 @@ export function ExpensesView({ initialSummary }: ExpensesViewProps) {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/expenses", { cache: "no-store" });
+      const res = await fetch("/celia/api/expenses", { cache: "no-store" });
       if (res.ok) {
         const data = (await res.json()) as ExpensesSummary;
         setSummary(data);
@@ -87,7 +87,7 @@ export function ExpensesView({ initialSummary }: ExpensesViewProps) {
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch(`/api/expenses/${row.id}`, {
+      const res = await fetch(`/celia/api/expenses/${row.id}`, {
         method: "DELETE",
         headers: { "Accept-Language": locale },
       });

@@ -64,7 +64,7 @@ export function CopyPriceSettings({ isAdmin, initialPrice }: CopyPriceSettingsPr
     setSaving(true);
     setNotice(undefined);
     try {
-      const res = await fetch("/api/pricing/copy-price", {
+      const res = await fetch("/celia/api/pricing/copy-price", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pricePerGB: value }),

@@ -68,7 +68,7 @@ export function ProductPricesView({ initialRows }: ProductPricesViewProps) {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/products", { cache: "no-store" });
+      const res = await fetch("/celia/api/products", { cache: "no-store" });
       if (res.ok) {
         const data = (await res.json()) as { rows: ProductRow[] };
         setRows(data.rows);
@@ -82,7 +82,7 @@ export function ProductPricesView({ initialRows }: ProductPricesViewProps) {
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch(`/api/products/${row.id}`, {
+      const res = await fetch(`/celia/api/products/${row.id}`, {
         method: "DELETE",
         headers: { "Accept-Language": locale },
       });

@@ -29,7 +29,7 @@ export function DashboardContent({ initialStats }: DashboardContentProps) {
         return;
       }
       try {
-        const res = await fetch("/api/dashboard/stats", {
+        const res = await fetch("/celia/api/dashboard/stats", {
           headers: { "Accept-Language": locale },
         });
         if (!res.ok) return;

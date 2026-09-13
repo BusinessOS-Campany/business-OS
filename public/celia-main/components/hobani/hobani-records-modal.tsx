@@ -31,7 +31,7 @@ export function HobaniRecordsModal({ day, period, onClose, onChanged }: HobaniRe
   const load = useCallback(async () => {
     try {
       const res = await fetch(
-        `/api/hobani/income?day=${encodeURIComponent(day)}&period=${encodeURIComponent(period)}`,
+        `/celia/api/hobani/income?day=${encodeURIComponent(day)}&period=${encodeURIComponent(period)}`,
       );
       const data = (await res.json().catch(() => null)) as {
         records?: HobaniIncomeRecord[];
@@ -77,7 +77,7 @@ export function HobaniRecordsModal({ day, period, onClose, onChanged }: HobaniRe
     setDeleting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/hobani/income/${record.id}`, {
+      const res = await fetch(`/celia/api/hobani/income/${record.id}`, {
         method: "DELETE",
         headers: { "Accept-Language": locale },
       });
