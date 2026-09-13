@@ -19,12 +19,17 @@ export const AR_MONTHS = [
 
 const ar = {
   brand: {
-    name: "سيليا",
-    logoAlt: "سيليا",
+    name: "كافيه اوس",
+    logoAlt: "كافيه اوس",
   },
   common: {
-    initial: "م",
+    initial: "ك",
     loading: "جاري التحميل...",
+  },
+  start: {
+    title: "جميع الصفحات",
+    subtitle: "اختر صفحة للانتقال إليها مباشرة من مكان واحد",
+    open: "فتح",
   },
   header: {
     openMenu: "فتح القائمة",
@@ -216,9 +221,9 @@ const ar = {
     unexpectedError: "حدث خطأ غير متوقع، حاول مرة أخرى",
     welcome: "أهلاً بعودتك",
     secureAccess: "دخول آمن ومشفر",
-    footer: "© {year} سيليا — جميع الحقوق محفوظة",
+    footer: "© {year} كافيه اوس — جميع الحقوق محفوظة",
     tagline: "نظام إدارة متكامل لعملياتك اليومية — سهل وآمن وموثوق",
-    featuresTitle: "لماذا سيليا؟",
+    featuresTitle: "لماذا كافيه اوس؟",
     features: {
       dashboard: "لوحة تحكم شاملة وإحصائيات لحظية",
       reports: "تقارير دقيقة وتتبع كامل لكل المعاملات",
@@ -970,6 +975,7 @@ const ar = {
   sidebar: {
     headingPricing: "الأسعار",
     headingPermissions: "الصلاحيات والموظفين",
+    allPages: "جميع الصفحات",
     dashboard: "لوحة التحكم",
     entries: "صفحة الإدخالات",
     hobaniEntry: "صفحة إدخال الحوباني",
@@ -1009,12 +1015,17 @@ const ar = {
 
 const en: Dictionary = {
   brand: {
-    name: "Celia",
-    logoAlt: "Celia",
+    name: "Cafe OS",
+    logoAlt: "Cafe OS",
   },
   common: {
-    initial: "U",
+    initial: "C",
     loading: "Loading...",
+  },
+  start: {
+    title: "All pages",
+    subtitle: "Pick a page to open it directly from one place",
+    open: "Open",
   },
   header: {
     openMenu: "Open menu",
@@ -1219,9 +1230,9 @@ const en: Dictionary = {
     unexpectedError: "Unexpected error, please try again",
     welcome: "Welcome back",
     secureAccess: "Secure encrypted access",
-    footer: "© {year} Celia — All rights reserved",
+    footer: "© {year} Cafe OS — All rights reserved",
     tagline: "A complete management system for your daily operations — easy, secure and reliable",
-    featuresTitle: "Why Celia?",
+    featuresTitle: "Why Cafe OS?",
     features: {
       dashboard: "Comprehensive dashboard with live statistics",
       reports: "Accurate reports and full tracking for every transaction",
@@ -1973,6 +1984,7 @@ const en: Dictionary = {
   sidebar: {
     headingPricing: "Pricing",
     headingPermissions: "Permissions & employees",
+    allPages: "All pages",
     dashboard: "Dashboard",
     entries: "Entry pages",
     hobaniEntry: "Hobani entry page",

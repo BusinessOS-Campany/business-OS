@@ -1,7 +1,5 @@
 "use client";
 
-import Image from "next/image";
-import logoImage from "./celiaLogo.jpg";
 import { cn } from "@/lib/cn";
 import { useLocale } from "@/lib/i18n/locale-provider";
 
@@ -15,11 +13,9 @@ export function Logo({ className, showText = true, dark = false }: LogoProps) {
   const { t } = useLocale();
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
-      <Image
-        src={logoImage}
+      <img
+        src="/cafe-os-logo.svg"
         alt={t.brand.logoAlt}
-        width={logoImage.width}
-        height={logoImage.height}
         className="h-10 w-auto shrink-0 rounded-lg object-contain"
       />
       {showText && (

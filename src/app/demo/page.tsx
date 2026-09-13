@@ -120,7 +120,7 @@ const LIVE_HREF: Record<string, string> = {
 const LIVE_LABEL: Record<string, string> = {
   grocery: "افتح نظام البقالة",
   clinic: "افتح نظام سما سنتر",
-  cafe: "افتح نظام سيليا",
+  cafe: "افتح نظام كافيه اوس",
 };
 
 function formatDays(days: number, hours: number): string {

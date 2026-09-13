@@ -88,7 +88,7 @@ Login (Auth) → Authorization (RBAC)
 
 ```text
   app/
-    layout.tsx               # lang=ar dir=rtl، Cairo (next/font)، metadata "… | سيليا"
+    layout.tsx               # lang=ar dir=rtl، Cairo (next/font)، metadata "… | كافيه اوس"
     loading.tsx              # loading عام (جذر)
   (dashboard)/               # مجموعة مسارات اللوحة — تخطيط ثابت يحافظ على الـ Shell عبر التنقل
     layout.tsx               # خادم — requireUser + getUserPermissions مرة واحدة ثم <DashboardShell>{children}
@@ -140,7 +140,7 @@ proxy.ts                   # Next 16 Proxy — حماية/توجيه الجلس�
     ui/button.tsx            # Button (variants، sizes، loading)
     ui/input.tsx             # Input (startIcon, hasError)
     ui/form-field.tsx        # FormField (label/error)
-    brand/logo.tsx           # Logo سيليا (صورة celiaLogo.jpg + نص اختياري، dark prop)
+    brand/logo.tsx           # Logo كافيه اوس (رسم SVG + نص اختياري، dark prop)
     login/login-form.tsx     # عميل — signIn.username، rememberMe، أخطاء، إظهار/إخفاء كلمة المرور
     home/sign-out-button.tsx # عميل — authClient.signOut() + redirect
     layout/sidebar.tsx       # عميل — تنقل (لوحة التحكم + نظام التحويلات + …) + بطاقة مستخدم + خروج

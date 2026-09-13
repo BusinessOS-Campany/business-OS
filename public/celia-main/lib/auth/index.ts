@@ -4,7 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db, schema } from "@/lib/db";
 
 export const auth = betterAuth({
-  appName: "Celia",
+  appName: "Cafe OS",
   basePath: "/api/auth",
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -34,6 +34,11 @@ export const auth = betterAuth({
       minUsernameLength: 3,
       maxUsernameLength: 30,
     }),
+  ],
+  trustedOrigins: [
+    "https://business-os-company.vercel.app",
+    "https://celia-app-one.vercel.app",
+    "http://localhost:3100",
   ],
   advanced: {
     cookiePrefix: "celia",

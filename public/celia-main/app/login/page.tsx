@@ -1,10 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { Lock } from "lucide-react";
 import type { CSSProperties } from "react";
 import { LoginForm } from "@/components/login/login-form";
-import logoImage from "@/components/brand/celiaLogo.jpg";
 import { useLocale } from "@/lib/i18n/locale-provider";
 
 const glassVars = {
@@ -51,11 +49,9 @@ export default function LoginPage() {
           className="rounded-3xl border border-white/20 bg-white/10 p-8 shadow-2xl shadow-slate-950/40 backdrop-blur-xl sm:p-10"
         >
           <div className="mx-auto mb-8 flex size-24 items-center justify-center rounded-full bg-white/10 p-2 shadow-inner ring-1 ring-white/30">
-            <Image
-              src={logoImage}
+            <img
+              src="/cafe-os-logo.svg"
               alt={t.brand.logoAlt}
-              width={logoImage.width}
-              height={logoImage.height}
               className="size-full rounded-full object-contain"
             />
           </div>

@@ -7,8 +7,8 @@ import "./fixes.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "سيليا | نظام إدارة الإنترنت ",
-    template: "%s | سيليا",
+    default: "كافيه اوس | نظام إدارة الإنترنت ",
+    template: "%s | كافيه اوس",
   },
   description: "نظام متكامل لإدارةالإنترنت ",
 };
