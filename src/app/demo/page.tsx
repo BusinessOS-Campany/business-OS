@@ -49,7 +49,7 @@ const SYSTEMS: SystemDef[] = [
   {
     key: "grocery",
     icon: ShoppingCart,
-    name: "بقالة تجريبية",
+    name: "نظام بقاله",
     tagline: "منتجات وباركود وموردين وعملاء وتقارير ربح لبقالتك.",
     stats: [
       { icon: Wallet, label: "فواتير اليوم", value: "48" },
@@ -68,7 +68,7 @@ const SYSTEMS: SystemDef[] = [
 {
     key: "clinic",
     icon: Stethoscope,
-    name: "نظام سما سنتر",
+    name: "نظام علاج طبيعي",
     tagline: "إدارة المرضى والجلسات والمواعيد والمدفوعات لمركزك الصحي.",
     stats: [
       { icon: Users, label: "المرضى", value: "520" },
@@ -87,7 +87,7 @@ const SYSTEMS: SystemDef[] = [
   {
     key: "cafe",
     icon: Coffee,
-    name: "نظام سيليا",
+    name: "نظام اداره المقاهي",
     tagline: "إدارة المقهى الإلكتروني — أجهزة وجلسات وشحن ورواتب وتقارير يومية.",
     stats: [
       { icon: Monitor, label: "الأجهزة", value: "24" },
@@ -279,7 +279,7 @@ function ActiveTrialBanner({ trial, now }: { trial: DemoTrial; now: Date }) {
         <div>
           <div className="text-sm font-bold text-white">نسختك التجريبية نشطة — بدون تسجيل</div>
           <div className="mt-0.5 text-xs text-white/60">
-            متبقّي {formatDays(days, hours)} من 3 أيام · {trial.system === "store" ? "متجر تجريبي" : trial.system === "grocery" ? "بقالة تجريبية" : trial.system === "clinic" ? "مركز تجريبي" : "مقهى تجريبي"}
+            متبقّي {formatDays(days, hours)} من 3 أيام · {trial.system === "store" ? "متجر تجريبي" : trial.system === "grocery" ? "نظام بقاله" : trial.system === "clinic" ? "نظام علاج طبيعي" : "نظام اداره المقاهي"}
           </div>
           <div className="mt-2 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-white/10 sm:w-56">
             <div
