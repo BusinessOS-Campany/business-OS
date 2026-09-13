@@ -10,8 +10,16 @@ function createClient(): PrismaClient {
   const pgUrl = url.replace(/\?schema=[^&]*$/, "");
   // Small per-instance pool: on serverless every lambda opens its own pool and
   // Supabase's session-mode pooler only allows ~15 concurrent sessions.
+  // search_path is set at the connection level so $queryRaw/_executeRaw calls
+  // (which bypass the adapter's schema option) resolve to the grocery schema.
   const adapter = new PrismaPg(
-    { connectionString: pgUrl, max: 4, idleTimeoutMillis: 15_000, connectionTimeoutMillis: 10_000 },
+    {
+      connectionString: pgUrl,
+      max: 4,
+      idleTimeoutMillis: 15_000,
+      connectionTimeoutMillis: 10_000,
+      options: "-c search_path=grocery",
+    },
     { schema: "grocery" },
   );
   return new PrismaClient({ adapter, log: ["warn", "error"] });

@@ -20,7 +20,12 @@ const nextConfig: NextConfig = {
         {
           // The standalone grocery demo app (public/muafa-store-main) lives at
           // /grocery (basePath in its next.config.ts) and is reverse-proxied
-          // same-origin.
+          // same-origin. Exact root first so the empty :path* below does not
+          // send /grocery to a trailing-slash URL (downstream 308-loops).
+          source: "/grocery",
+          destination: `${groceryUrl}/grocery`,
+        },
+        {
           source: "/grocery/:path*",
           destination: `${groceryUrl}/grocery/:path*`,
         },
@@ -36,10 +41,15 @@ const nextConfig: NextConfig = {
           destination: `${samaWebUrl}/sama/:path*`,
         },
         {
-          // Celia internet-café system (standalone Next app in
+          // Celia internet-cafe system (standalone Next app in
           // public/celia-main, basePath /celia, port 3104). Pages and
           // better-auth/api routes all live under the same basePath, so one
-          // rewrite covers both.
+          // rewrite covers both. Exact root first to avoid the trailing-slash
+          // 308-loop described above.
+          source: "/celia",
+          destination: `${celiaUrl}/celia`,
+        },
+        {
           source: "/celia/:path*",
           destination: `${celiaUrl}/celia/:path*`,
         },
