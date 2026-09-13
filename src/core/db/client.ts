@@ -11,8 +11,11 @@ function createClient(): PrismaClient {
   if (!connectionString) {
     throw new Error("[db] DATABASE_URL is not set");
   }
-  const pool = new Pool({ connectionString, max: 10 });
-  const adapter = new PrismaPg(pool);
+  // pg does not understand Prisma's ?schema= convention — strip it and pass explicitly.
+  const pgUrl = connectionString.replace(/\?schema=[^&]*$/, "");
+  const schema = /\bschema=([^&]+)/.exec(connectionString)?.[1] ?? "public";
+  const pool = new Pool({ connectionString: pgUrl, max: 10 });
+  const adapter = new PrismaPg(pool, { schema: process.env.DATABASE_SCHEMA ?? schema });
   return new PrismaClient({ adapter });
 }
 

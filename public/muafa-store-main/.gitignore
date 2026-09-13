@@ -53,3 +53,5 @@ skills-lock.json
 .vercel
 .env*
 *.log
+.vercel
+.env*
