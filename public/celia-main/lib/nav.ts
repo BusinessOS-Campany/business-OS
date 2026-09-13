@@ -12,7 +12,6 @@ import {
   Gauge,
   LayoutDashboard,
   Layers,
-  LayoutGrid,
   List,
   Network,
   Phone,
@@ -99,11 +98,6 @@ export function getSidebarSections(t: Dictionary): SidebarSection[] {
   return [
     {
       links: [
-        {
-          label: s.allPages,
-          href: "/start",
-          icon: LayoutGrid,
-        },
         {
           label: s.dashboard,
           icon: Gauge,
