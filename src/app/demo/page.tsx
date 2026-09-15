@@ -21,6 +21,7 @@ import {
   CheckCircle2,
   Timer,
   Lock,
+  Bed,
 } from "lucide-react";
 import { OnboardingShell } from "@/components/onboarding/onboarding-shell";
 import {
@@ -33,7 +34,7 @@ import {
   type DemoTrial,
 } from "@/core/demo/trial";
 
-type SystemKey = "grocery" | "clinic" | "cafe";
+type SystemKey = "grocery" | "clinic" | "cafe" | "hospital";
 
 interface SystemDef {
   key: SystemKey;
@@ -103,24 +104,45 @@ const SYSTEMS: SystemDef[] = [
       ["PC-09", "طباعة + جلسة", "أمس", "25 ر.س"],
     ],
   },
+  {
+    key: "hospital",
+    icon: Bed,
+    name: "نظام المستشفى",
+    tagline: "إدارة المرضى والمواعيد والأسرّة والفواتير والأقسام الطبية.",
+    stats: [
+      { icon: Users, label: "المرضى", value: "1,240" },
+      { icon: CalendarDays, label: "المواعيد اليوم", value: "56" },
+      { icon: Bed, label: "الأسرّة المشغولة", value: "87/120" },
+      { icon: Wallet, label: "إيرادات الشهر", value: "186,000 ر.س" },
+    ],
+    tableTitle: "أحدث الحالات",
+    rows: [
+      ["P-4821", "محمد عبدالله", "الطب الباطني", "650 ر.س"],
+      ["P-4820", "سارة أحمد", "الجراحة العامة", "2,100 ر.س"],
+      ["P-4819", "علي حسن", "طب الأطفال", "320 ر.س"],
+      ["P-4818", "فاطمة محمد", "النسائية", "480 ر.س"],
+    ],
+  },
 ];
 
 const PERKS = ["بدون تسجيل", "بدون بطاقة ائتمان", "بيانات تجريبية جاهزة"];
 
 /* Standalone live demo systems: linked directly (proxied same-origin) instead
    of the 3-day trial flow. */
-const LIVE_KEYS = new Set<SystemKey>(["grocery", "clinic", "cafe"]);
+const LIVE_KEYS = new Set<SystemKey>(["grocery", "clinic", "cafe", "hospital"]);
 
 const LIVE_HREF: Record<string, string> = {
   grocery: "/grocery",
   clinic: "/sama",
   cafe: "/celia",
+  hospital: "/hospital",
 };
 
 const LIVE_LABEL: Record<string, string> = {
   grocery: "افتح نظام البقالة",
   clinic: "افتح نظام سما سنتر",
   cafe: "افتح نظام كافيه اوس",
+  hospital: "افتح نظام المستشفى",
 };
 
 function formatDays(days: number, hours: number): string {
@@ -215,7 +237,7 @@ function StartView({
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <s.icon className="h-6 w-6" />
               </div>
-              {(s.key === "grocery" || s.key === "clinic" || s.key === "cafe") && (
+              {LIVE_KEYS.has(s.key) && (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                   <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                   يعمل الآن
@@ -368,7 +390,7 @@ function ActiveView({
       </div>
 
       {/* Demo dashboard */}
-      {system.key === "grocery" ? (
+      {LIVE_EMBED_HREF[system.key] ? (
         <LiveEmbed system={system} />
       ) : (
         <StaticDashboard system={system} />
@@ -396,6 +418,7 @@ function ActiveView({
 /** Systems whose real standalone app is embedded live via iframe. */
 const LIVE_EMBED_HREF: Record<string, string> = {
   grocery: "/grocery",
+  hospital: "/hospital",
 };
 
 function LiveEmbed({ system }: { system: SystemDef }) {

@@ -30,5 +30,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "public/grocery", "public/muafa-store-main", "public/samaSYSTEM-main", "public/GMstore", "public/celia-main"]
+  "exclude": ["node_modules", "public/grocery", "public/muafa-store-main", "public/samaSYSTEM-main", "public/GMstore", "public/celia-main", "public/Hospital--main"]
 }

@@ -53,13 +53,21 @@ export function proxy(request: NextRequest) {
     request.headers.get("x-request-id") ??
     globalThis.crypto.randomUUID();
 
+  const { pathname } = request.nextUrl;
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-request-id", requestId);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("x-request-id", requestId);
 
+  const isDemoPath =
+    pathname.startsWith("/grocery") ||
+    pathname.startsWith("/hospital") ||
+    pathname.startsWith("/sama") ||
+    pathname.startsWith("/celia");
+
   for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    if (isDemoPath && key === "X-Frame-Options") continue;
     response.headers.set(key, value);
   }
 

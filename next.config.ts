@@ -15,6 +15,7 @@ const nextConfig: NextConfig = {
     const samaWebUrl = process.env.SAMA_WEB_URL ?? "http://localhost:3102";
     const samaApiUrl = process.env.SAMA_API_URL ?? "http://localhost:3103";
     const celiaUrl = process.env.CELIA_URL ?? "http://localhost:3104";
+    const hospitalUrl = process.env.HOSPITAL_URL ?? "http://localhost:3105";
     return {
       beforeFiles: [
         {
@@ -52,6 +53,16 @@ const nextConfig: NextConfig = {
         {
           source: "/celia/:path*",
           destination: `${celiaUrl}/celia/:path*`,
+        },
+        {
+          // YemenCare HMS (standalone Next app in
+          // public/Hospital--main, basePath /hospital, port 3105).
+          source: "/hospital",
+          destination: `${hospitalUrl}/hospital`,
+        },
+        {
+          source: "/hospital/:path*",
+          destination: `${hospitalUrl}/hospital/:path*`,
         },
       ],
     };
