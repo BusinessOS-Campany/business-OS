@@ -75,7 +75,7 @@ export async function loginAction(
     link: "/dashboard",
   });
 
-  return { ok: true };
+  redirect("/dashboard");
 }
 
 export async function logoutAction(): Promise<void> {

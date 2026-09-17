@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useActionState } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Loader2Icon, LockKeyholeIcon, ShieldCheckIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -13,18 +12,17 @@ import { toast } from "sonner";
 
 export function LoginForm() {
   const t = useTranslations("auth");
-  const router = useRouter();
+  const tr = useTranslations();
   const [state, action, pending] = useActionState(loginAction, null);
 
   React.useEffect(() => {
-    if (state?.ok) {
-      toast.success(t("dashboard?.saved") ?? "Welcome");
-      router.push("/dashboard");
-      router.refresh();
-    } else if (state && !state.ok) {
-      toast.error(t(state.error));
+    if (!state) return;
+    if (state.ok) {
+      toast.success(t("welcome"));
+    } else {
+      toast.error(state.error?.startsWith("auth.") ? tr(state.error) : tr("common.error"));
     }
-  }, [state, router, t]);
+  }, [state, t, tr]);
 
   return (
     <form action={action} className="flex flex-col gap-4">

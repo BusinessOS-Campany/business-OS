@@ -7,7 +7,7 @@ test.beforeEach(async ({ context, baseURL }) => {
 });
 
 async function login(page: Page) {
-  await page.goto("/login");
+  await page.goto("login");
   await page.getByLabel("Email or username").fill(ADMIN.email);
   await page.getByLabel("Password").fill(ADMIN.password);
   await page.getByRole("button", { name: "Sign in" }).click();
@@ -16,7 +16,7 @@ async function login(page: Page) {
 
 test("insurance overview renders", async ({ page }) => {
   await login(page);
-  await page.goto("/insurance");
+  await page.goto("insurance");
   await expect(page.getByRole("heading", { name: "Insurance" })).toBeVisible();
   await expect(page.getByText("Insurance Companies", { exact: true }).first()).toBeVisible();
   await expect(page.getByText(/Recent claims/)).toBeVisible();
@@ -24,7 +24,7 @@ test("insurance overview renders", async ({ page }) => {
 
 test("add an insurance company via form", async ({ page }) => {
   await login(page);
-  await page.goto("/insurance/companies");
+  await page.goto("insurance/companies");
   await expect(page.getByRole("heading", { name: "Insurance Companies" })).toBeVisible();
   await page.locator("input[name='code']").fill("QA01");
   await page.locator("input[name='nameAr']").fill("شركة اختبار");
@@ -35,10 +35,10 @@ test("add an insurance company via form", async ({ page }) => {
 
 test("add a scheme on company detail", async ({ page }) => {
   await login(page);
-  await page.goto("/insurance/companies");
+  await page.goto("insurance/companies");
   const row = page.getByRole("row", { name: /QA Test Insurance/ }).first();
   await row.getByRole("link").first().click();
-  await page.waitForURL(/\/insurance\/companies\/[\w-]+$/);
+  await expect(page).toHaveURL(/insurance\/companies\/[\w-]+/);
   await expect(page.getByRole("heading", { name: "QA Test Insurance" })).toBeVisible();
   const schemeForm = page.locator("form").filter({ hasText: "Coverage rate" });
   await schemeForm.locator("input[name='nameAr']").fill("خطة اختبار");
@@ -49,8 +49,8 @@ test("add a scheme on company detail", async ({ page }) => {
 
 test("claims list and new claim pages render", async ({ page }) => {
   await login(page);
-  await page.goto("/insurance/claims");
+  await page.goto("insurance/claims");
   await expect(page.getByRole("heading", { name: "Claims" })).toBeVisible();
-  await page.goto("/insurance/claims/new");
+  await page.goto("insurance/claims/new");
   await expect(page.getByRole("heading", { name: "Create claim" })).toBeVisible();
 });
