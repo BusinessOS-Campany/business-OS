@@ -186,3 +186,39 @@ Everything below is NOT YET IMPLEMENTED. Updated continuously; entries removed o
 - **M3 apply:** `/signin /signup` (kept ParticleCanvas, removed duplicated glows), `/systems` (system-cards.tsx glass restyle for TemplateCard/OtherCard + info box), `/my-apps` (glass app cards, empty state, browse-more), `/select-org` (glass ActivateRow), `/demo` (replaced old top-bar nav, glass dashboard/table/CTA), `/windy` (kept LTR, bg moved to shell).
 - **M4 verify:** `tsc --noEmit` clean; `npm run build` success with all `/app/*` routes intact; browser probes (puppeteer, Edge headless) — 10/10 public pages at 390×844 + 1280×800 (header/footer/no-overflow/shell bg); unauth redirect check `/select-org` + `/my-apps` → `/signin` (no 500); full authed flow signup→signin→select-org→my-apps 5/5 PASS (header+footer+overflow=safe+shell wrapper present). Probe infra: fresh signup via `auth.api.signUpEmail` needs matching origin (`.env.local` pins `http://localhost:3000`; better-auth CSRF 403s other origins); dev cluster `.data/pg` (port 5433) needed `prisma migrate deploy` to install schema (was empty).
 - **Cleanup candidates:** `public/models/a_windy_day.glb` (55MB, unused — excluded from git commit), puppeteer-core devDep decision.
+
+---
+
+## 2026-09 — PHARMACY SUB-APP (implemented + verified)
+
+Standalone Next.js 16 + Prisma 7 app under `public/pharmacy/` (own root layout, own package.json, own DB).
+
+### Run
+- Standalone: `npm --prefix public/pharmacy run dev` → http://localhost:5000 (script pins port 5000).
+- Root `concurrently` runner includes it (label `pharmacy`).
+- DB: SQLite via Prisma (`prisma/dev.db`); setup = `prisma migrate dev` + `prisma db seed` (demo login `demo` / `demo123`).
+
+### Platform shape
+- Arabic-first RTL (`NextIntlClientProvider`, `noto_kufi_arabic`), YER money as integer minor units (bigint, 1 YER = 100; never floats — server recomputes totals).
+- Auth: custom cookie session (`serverCurrentUser` → `getCurrentUser`); server-gated by `requirePermission`; Next 16 `src/proxy.ts` (replaces middleware) routes unauthenticated users to `/login`.
+- Prisma schema has **no relations** — manual FK mapping via id columns + Maps everywhere.
+- Generic CRUD client: `src/components/resource-table.tsx` (fields/columns/search/save/delete/empty-state; no lucide `icon` prop — server→client boundary).
+
+### Modules (all smoke-tested 200, `npx tsc --noEmit` clean, `npm run build` green)
+- Base: dashboard, medicines (+batches, low-stock/FEFO), suppliers, customers, doctors, employees (ResourceTable CRUD).
+- Purchases: PO with line editor, partial receive (per-item, status `received`/`partially_received`), cancel.
+- Inventory: adjustments (`stockAdjustment` type/quantity/previousQty/newQty) + transfers (both warehouses, `inventoryMovement.warehouseId` required).
+- Sales list + returns (sales returns per invoice line — restock batches, refund cash balances; supplier returns by batch).
+- Prescriptions (create/dispense→creates cash sale at default warehouse, cancel), Expenses (records + category CRUD, negative cash movements), Cash (open/close sessions with discrepancy = actual − expected, deposit/withdraw).
+- Reports (`?type=sales|inventory|expiry|expenses`, server-rendered tabs, KPI cards, PrintButton).
+- Admin: settings (profile/appearance), audit log, roles reference, notifications, global search, profile (change password).
+- POS + receipt print (pre-existing, port 5000).
+
+### Service-layer notes
+- `src/lib/{inventory,returns}.ts` — purchase receive (partial) + sales/supplier return services; `src/lib/actions/*` are the server actions; `src/lib/{permissions,audit,password,i18n,dal}.ts` = auth/permission infra.
+- Permission keys used: `purchases:create|receive`, `returns:create`, `inventory:adjust|transfer`, `cash:manage`, `expenses:create`, `settings:manage`, `audit:view`, `roles:view`, `notifications:view`, `search:view`; `AUDIT_ACTIONS` includes ADJUST/TRANSFER.
+- Clients receive money as plain major-unit numbers; display via `fmtMoney(BigInt(Math.round(x * 100)), locale)`.
+
+### Pitfalls recorded
+- `medicine`/`warehouse`/`cashAccount` use `nameAr`/`nameEn` (not `name`); `medicineBatch.remainingQty` is Decimal → compare with `Number(...)`.
+- Turbopack os error 112 ("disk full") into a `page_client-reference-manifest.js` = a wedged dev server (orphan process holding :5000), not real disk pressure — kill the port listener + delete `.next`, restart.
