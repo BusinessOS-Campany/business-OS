@@ -21,6 +21,8 @@ const DEFAULT_PREFIXES: Record<string, string> = {
   expense: "EXP",
   trip: "TRP",
   employee: "EMP",
+  journal: "JRN",
+  leave: "LV",
 };
 
 /**

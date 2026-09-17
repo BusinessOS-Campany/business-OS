@@ -5,6 +5,14 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: "4mb",
     },
+    // Trim unused exports from large barrel packages to shrink client bundles.
+    optimizePackageImports: ["lucide-react", "date-fns", "recharts"],
+    // Keep recently visited dynamic routes in the client router cache so
+    // back/forward and repeat navigation is instant instead of refetching.
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
   },
   images: {
     remotePatterns: [
@@ -22,7 +30,6 @@ const nextConfig = {
         headers: [
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
         ],
       },
     ];

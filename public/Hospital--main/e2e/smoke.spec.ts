@@ -8,7 +8,7 @@ test.beforeEach(async ({ context, baseURL }) => {
 });
 
 async function login(page: Page, email: string, password: string) {
-  await page.goto("/login");
+  await page.goto("login");
   await page.getByLabel("Email or username").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();
@@ -22,7 +22,7 @@ test("login works with seeded admin account", async ({ page }) => {
 
 test("create a patient as admin", async ({ page }) => {
   await login(page, ADMIN.email, ADMIN.password);
-  await page.goto("/patients/new");
+  await page.goto("patients/new");
   await page.locator("input[name='nameAr']").fill("مريض تجريبي");
   await page.locator("input[name='nameEn']").fill("Test Patient");
   await page.locator("input[name='phone']").fill("771000101");
@@ -32,7 +32,7 @@ test("create a patient as admin", async ({ page }) => {
 
 test("book an appointment from reception", async ({ page }) => {
   await login(page, RECEPTION.email, RECEPTION.password);
-  await page.goto("/appointments/new");
+  await page.goto("appointments/new");
   await page.getByPlaceholder("Search by name, phone or MRN").click();
   await page.getByText(/7710|Test Patient|مريض/).first().click();
   await page.getByRole("button", { name: "New Appointment" }).click();
@@ -41,13 +41,13 @@ test("book an appointment from reception", async ({ page }) => {
 
 test("reception board renders", async ({ page }) => {
   await login(page, RECEPTION.email, RECEPTION.password);
-  await page.goto("/reception");
+  await page.goto("reception");
   await expect(page.getByText("Reception Desk")).toBeVisible();
 });
 
 test("encounters board renders for doctor", async ({ page }) => {
   await login(page, "doctor@yemencare.local", "Doctor@123");
-  await page.goto("/encounters");
+  await page.goto("encounters");
   await expect(page.getByRole("heading", { name: "Consultations" })).toBeVisible();
 });
 
