@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
     const samaApiUrl = process.env.SAMA_API_URL ?? "http://localhost:3103";
     const celiaUrl = process.env.CELIA_URL ?? "http://localhost:3104";
     const hospitalUrl = process.env.HOSPITAL_URL ?? "http://localhost:3105";
+    const dentalUrl = process.env.DENTAL_URL ?? "http://localhost:3106";
     return {
       beforeFiles: [
         {
@@ -63,6 +64,16 @@ const nextConfig: NextConfig = {
         {
           source: "/hospital/:path*",
           destination: `${hospitalUrl}/hospital/:path*`,
+        },
+        {
+          // Dental clinic system (standalone Next app in
+          // public/dental-Clinic--main, basePath /dental, port 3106).
+          source: "/dental",
+          destination: `${dentalUrl}/dental`,
+        },
+        {
+          source: "/dental/:path*",
+          destination: `${dentalUrl}/dental/:path*`,
         },
       ],
     };

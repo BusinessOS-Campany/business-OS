@@ -22,6 +22,7 @@ import {
   Timer,
   Lock,
   Bed,
+  SmilePlus,
 } from "lucide-react";
 import { OnboardingShell } from "@/components/onboarding/onboarding-shell";
 import {
@@ -34,7 +35,7 @@ import {
   type DemoTrial,
 } from "@/core/demo/trial";
 
-type SystemKey = "grocery" | "clinic" | "cafe" | "hospital";
+type SystemKey = "grocery" | "clinic" | "cafe" | "hospital" | "dental";
 
 interface SystemDef {
   key: SystemKey;
@@ -123,26 +124,47 @@ const SYSTEMS: SystemDef[] = [
       ["P-4818", "فاطمة محمد", "النسائية", "480 ر.س"],
     ],
   },
+  {
+    key: "dental",
+    icon: SmilePlus,
+    name: "نظام عيادة اسنان",
+    tagline: "إدارة المرضى والمواعيد والحشوات والتركيبات والفواتير والمختبر لعيادتك.",
+    stats: [
+      { icon: Users, label: "المرضى", value: "15" },
+      { icon: CalendarDays, label: "مواعيد اليوم", value: "8" },
+      { icon: Receipt, label: "فواتير اليوم", value: "10" },
+      { icon: Wallet, label: "إيرادات الشهر", value: "318,500 ر.س" },
+    ],
+    tableTitle: "مواعيد اليوم",
+    rows: [
+      ["P-0001", "محمد العامري", "علاج جذر (36)", "09:00"],
+      ["P-0002", "فاطمة القرشي", "استشارة", "09:30"],
+      ["P-0003", "عبدالله باذيب", "خلع ضرس", "11:00"],
+      ["P-0007", "يوسف الحداد", "متابعة طفل", "13:00"],
+    ],
+  },
 ];
 
 const PERKS = ["بدون تسجيل", "بدون بطاقة ائتمان", "بيانات تجريبية جاهزة"];
 
 /* Standalone live demo systems: linked directly (proxied same-origin) instead
    of the 3-day trial flow. */
-const LIVE_KEYS = new Set<SystemKey>(["grocery", "clinic", "cafe", "hospital"]);
+const LIVE_KEYS = new Set<SystemKey>(["grocery", "clinic", "cafe", "hospital", "dental"]);
 
 const LIVE_HREF: Record<string, string> = {
   grocery: "/grocery",
   clinic: "/sama",
   cafe: "/celia",
   hospital: "/hospital",
+  dental: "/dental",
 };
 
 const LIVE_LABEL: Record<string, string> = {
   grocery: "افتح نظام البقالة",
-  clinic: "افتح نظام سما سنتر",
+  clinic: "افتح نظام علاج طبيعي",
   cafe: "افتح نظام كافيه اوس",
   hospital: "افتح نظام المستشفى",
+  dental: "افتح نظام عيادة اسنان",
 };
 
 function formatDays(days: number, hours: number): string {
@@ -419,6 +441,7 @@ function ActiveView({
 const LIVE_EMBED_HREF: Record<string, string> = {
   grocery: "/grocery",
   hospital: "/hospital",
+  dental: "/dental",
 };
 
 function LiveEmbed({ system }: { system: SystemDef }) {

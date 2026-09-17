@@ -6,10 +6,12 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "concurrently -n erp,grocery,sama,celia -c blue,green,yellow,magenta \"next dev --webpack -p 3100\" \"npm run dev:grocery\" \"npm run dev:sama\" \"npm run dev:celia\"",
+    "dev": "concurrently -n erp,grocery,sama,celia,dental,pharmacy -c blue,green,yellow,magenta,cyan,red \"next dev --webpack -p 3100\" \"npm run dev:grocery\" \"npm run dev:sama\" \"npm run dev:celia\" \"npm run dev:dental\" \"npm run dev:pharmacy\"",
     "dev:grocery": "npm --prefix public/muafa-store-main run dev -- --port 3101",
     "dev:sama": "concurrently -n sama-api,sama-web -c cyan,magenta \"npm --prefix public/samaSYSTEM-main/backend run dev\" \"npm --prefix public/samaSYSTEM-main/frontend run dev\"",
     "dev:celia": "npm --prefix public/celia-main run dev -- --port 3104",
+    "dev:dental": "npm --prefix public/dental-Clinic--main run dev -- --port 3106",
+    "dev:pharmacy": "npm --prefix public/pharmacy run dev",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",

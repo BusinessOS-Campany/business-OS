@@ -64,10 +64,14 @@ export function proxy(request: NextRequest) {
     pathname.startsWith("/grocery") ||
     pathname.startsWith("/hospital") ||
     pathname.startsWith("/sama") ||
-    pathname.startsWith("/celia");
+    pathname.startsWith("/celia") ||
+    pathname.startsWith("/dental");
 
   for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
-    if (isDemoPath && key === "X-Frame-Options") continue;
+    if (isDemoPath && key === "X-Frame-Options") {
+      response.headers.set(key, "SAMEORIGIN");
+      continue;
+    }
     response.headers.set(key, value);
   }
 
