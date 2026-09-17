@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DentalChart } from "@/components/dental-chart/dental-chart"
+import { DentalChartView } from "@/components/dental-chart/dental-chart-view"
 import type { ToothRecordDTO } from "@/components/dental-chart/condition-editor-dialog"
 import { PatientFormDialog, type PatientFormValues } from "@/components/patients/patient-form-dialog"
 import { calcAge, formatCurrency, formatDate } from "@/lib/format"
@@ -345,7 +345,7 @@ export default async function PatientDetailPage({ params }: Props) {
               <p className="mb-3 text-xs font-medium text-muted-foreground">
                 {locale === "ar" ? "مخطط الأسنان" : "Dental Chart"}
               </p>
-              <DentalChart
+              <DentalChartView
                 patientId={patient.id}
                 records={toothRecordsDto}
                 canEdit={canEditChart}

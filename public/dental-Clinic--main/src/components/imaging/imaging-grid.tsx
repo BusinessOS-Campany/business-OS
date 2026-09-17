@@ -51,7 +51,7 @@ export function ImagingGrid({ records, canDelete }: Props) {
   return (
     <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
       {records.map((r) => {
-        const src = r.mimeType?.startsWith("image/") ? `/dental/api/files/${r.filePath}` : null
+        const src = r.mimeType?.startsWith("image/") ? `/api/files/${r.filePath}` : null
         return (
           <Card key={r.id} className="overflow-hidden">
             {src ? (

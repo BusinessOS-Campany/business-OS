@@ -164,7 +164,7 @@ export default async function ReportsPage() {
           <div className="flex flex-wrap gap-2">
             {exportLinks.map((l) => (
               <Button key={l.type} variant="outline" size="sm" asChild>
-                <a href={`/dental/api/reports/export?type=${l.type}`}>
+                <a href={`/api/reports/export?type=${l.type}`}>
                   <Download className="h-4 w-4" />
                   {l.label}
                 </a>
