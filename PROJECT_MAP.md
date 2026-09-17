@@ -191,12 +191,13 @@ Everything below is NOT YET IMPLEMENTED. Updated continuously; entries removed o
 
 ## 2026-09 — PHARMACY SUB-APP (implemented + verified)
 
-Standalone Next.js 16 + Prisma 7 app under `public/pharmacy/` (own root layout, own package.json, own DB).
+Standalone Next.js 16 + Prisma 7 app under `public/pharmacy/` (own root layout, own package.json, own DB). **Tracked as a git submodule** (`.gitmodules`: `public/pharmacy` → `https://github.com/gmsnow/pharmacy.git`) — commit/push inside `public/pharmacy`, then bump the gitlink pointer in the monorepo (`git add public/pharmacy`); never edit via the monorepo index.
 
 ### Run
-- Standalone: `npm --prefix public/pharmacy run dev` → http://localhost:5000 (script pins port 5000).
-- Root `concurrently` runner includes it (label `pharmacy`).
-- DB: SQLite via Prisma (`prisma/dev.db`); setup = `prisma migrate dev` + `prisma db seed` (demo login `demo` / `demo123`).
+- `next.config.ts` sets `basePath: "/pharmacy"` — app is served at `http://localhost:5000/pharmacy` (script pins port 5000). `next/link` + `useRouter` handle basePath automatically; client code that uses raw `fetch("/api/...")` or `window.location` must prefix `/pharmacy` (auth forms already do; keep this convention).
+- Standalone: `npm --prefix public/pharmacy run dev` → http://localhost:5000/pharmacy.
+- Root `concurrently` runner includes it (label `pharmacy`); root `next.config.ts` reverse-proxies `/pharmacy` and `/pharmacy/:path*` to `PHARMACY_URL` (default `http://localhost:5000`).
+- DB: PostgreSQL `postgresql://postgres:bos_dev_2026@localhost:5432/pharmacy` (`.env`; leftover `prisma/dev.db` is unused, 0 bytes). Setup = `npm run db:migrate` + `npm run db:seed` (demo login `demo` / `demo123`; all seeded accounts share that password).
 
 ### Platform shape
 - Arabic-first RTL (`NextIntlClientProvider`, `noto_kufi_arabic`), YER money as integer minor units (bigint, 1 YER = 100; never floats — server recomputes totals).
@@ -212,6 +213,7 @@ Standalone Next.js 16 + Prisma 7 app under `public/pharmacy/` (own root layout, 
 - Prescriptions (create/dispense→creates cash sale at default warehouse, cancel), Expenses (records + category CRUD, negative cash movements), Cash (open/close sessions with discrepancy = actual − expected, deposit/withdraw).
 - Reports (`?type=sales|inventory|expiry|expenses`, server-rendered tabs, KPI cards, PrintButton).
 - Admin: settings (profile/appearance), audit log, roles reference, notifications, global search, profile (change password).
+- Live search: header `GlobalSearch` dropdown + `/search` explorer both debounce (250 ms) and fetch `/pharmacy/api/search` (`src/lib/search-service.ts` — medicines/customers/suppliers/invoices/prescriptions, `mode: insensitive`); Enter opens the full explorer which live-updates on every keystroke.
 - POS + receipt print (pre-existing, port 5000).
 
 ### Service-layer notes

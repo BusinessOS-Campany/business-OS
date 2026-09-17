@@ -14,6 +14,15 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Generated files:
     "public/sw.js",
+    // Sub-apps live in public/ with their own toolchains (matches tsconfig exclude):
+    "public/grocery/**",
+    "public/muafa-store-main/**",
+    "public/samaSYSTEM-main/**",
+    "public/GMstore/**",
+    "public/celia-main/**",
+    "public/Hospital--main/**",
+    "public/dental-Clinic--main/**",
+    "public/pharmacy/**",
   ]),
 ]);
 

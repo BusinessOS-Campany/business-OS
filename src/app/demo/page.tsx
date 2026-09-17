@@ -23,6 +23,7 @@ import {
   Lock,
   Bed,
   SmilePlus,
+  Pill,
 } from "lucide-react";
 import { OnboardingShell } from "@/components/onboarding/onboarding-shell";
 import {
@@ -35,7 +36,7 @@ import {
   type DemoTrial,
 } from "@/core/demo/trial";
 
-type SystemKey = "grocery" | "clinic" | "cafe" | "hospital" | "dental";
+type SystemKey = "grocery" | "clinic" | "cafe" | "hospital" | "dental" | "pharmacy";
 
 interface SystemDef {
   key: SystemKey;
@@ -143,13 +144,32 @@ const SYSTEMS: SystemDef[] = [
       ["P-0007", "يوسف الحداد", "متابعة طفل", "13:00"],
     ],
   },
+  {
+    key: "pharmacy",
+    icon: Pill,
+    name: "نظام صيدلية",
+    tagline: "إدارة الأدوية والمخزون والمنتجات والوصفات الطبية والفواتير لصيدليتك.",
+    stats: [
+      { icon: Package, label: "المنتجات", value: "1,850" },
+      { icon: TrendingUp, label: "مبيعات اليوم", value: "2,640 ر.س" },
+      { icon: Users, label: "العملاء", value: "310" },
+      { icon: Receipt, label: "فواتير اليوم", value: "22" },
+    ],
+    tableTitle: "أحدث الفواتير",
+    rows: [
+      ["RX-1042", "أحمد المقطري", "باراسيتامول 500مغ", "18 ر.س"],
+      ["RX-1041", "سارة حسن", "أموكسيسيلين", "24 ر.س"],
+      ["RX-1040", "خالد ناصر", "فيتامين D", "42 ر.س"],
+      ["RX-1039", "نورة عبدالله", "مضاد حيوي", "31 ر.س"],
+    ],
+  },
 ];
 
 const PERKS = ["بدون تسجيل", "بدون بطاقة ائتمان", "بيانات تجريبية جاهزة"];
 
 /* Standalone live demo systems: linked directly (proxied same-origin) instead
    of the 3-day trial flow. */
-const LIVE_KEYS = new Set<SystemKey>(["grocery", "clinic", "cafe", "hospital", "dental"]);
+const LIVE_KEYS = new Set<SystemKey>(["grocery", "clinic", "cafe", "hospital", "dental", "pharmacy"]);
 
 const LIVE_HREF: Record<string, string> = {
   grocery: "/grocery",
@@ -157,6 +177,7 @@ const LIVE_HREF: Record<string, string> = {
   cafe: "/celia",
   hospital: "/hospital",
   dental: "/dental",
+  pharmacy: "/pharmacy",
 };
 
 const LIVE_LABEL: Record<string, string> = {
@@ -165,6 +186,7 @@ const LIVE_LABEL: Record<string, string> = {
   cafe: "افتح نظام كافيه اوس",
   hospital: "افتح نظام المستشفى",
   dental: "افتح نظام عيادة اسنان",
+  pharmacy: "افتح نظام الصيدلية",
 };
 
 function formatDays(days: number, hours: number): string {
@@ -442,6 +464,7 @@ const LIVE_EMBED_HREF: Record<string, string> = {
   grocery: "/grocery",
   hospital: "/hospital",
   dental: "/dental",
+  pharmacy: "/pharmacy",
 };
 
 function LiveEmbed({ system }: { system: SystemDef }) {
