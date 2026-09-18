@@ -24,6 +24,8 @@ import {
   Bed,
   SmilePlus,
   Pill,
+  Microscope,
+  Eye,
 } from "lucide-react";
 import { OnboardingShell } from "@/components/onboarding/onboarding-shell";
 import {
@@ -36,7 +38,7 @@ import {
   type DemoTrial,
 } from "@/core/demo/trial";
 
-type SystemKey = "grocery" | "clinic" | "cafe" | "hospital" | "dental" | "pharmacy";
+type SystemKey = "grocery" | "clinic" | "cafe" | "hospital" | "dental" | "pharmacy" | "laboratory" | "optometry" | "pos";
 
 interface SystemDef {
   key: SystemKey;
@@ -163,13 +165,89 @@ const SYSTEMS: SystemDef[] = [
       ["RX-1039", "نورة عبدالله", "مضاد حيوي", "31 ر.س"],
     ],
   },
+  {
+    key: "laboratory",
+    icon: Microscope,
+    name: "نظام المختبر",
+    tagline: "إدارة الفحوصات والعينات والنتائج والأقسام والفواتير لمختبرك الطبي.",
+    stats: [
+      { icon: Users, label: "المرضى", value: "3" },
+      { icon: Microscope, label: "الفحوصات", value: "12" },
+      { icon: Receipt, label: "أوامر اليوم", value: "4" },
+      { icon: Wallet, label: "إيرادات الشهر", value: "18,400 ر.س" },
+    ],
+    tableTitle: "أحدث أوامر الفحص",
+    rows: [
+      ["ORD-0001", "محمد الشرعبي", "فحص دم شامل", "مكتمل"],
+      ["ORD-0002", "فاطمة الشميري", "سكر صائم", "قيد التنفيذ"],
+      ["ORD-0003", "عبدالله النزيلي", "تحليل بول", "بانتظار العينة"],
+      ["ORD-0004", "هدى القباطي", "وظائف كبد", "تم إصدار النتيجة"],
+    ],
+  },
+{
+    key: "laboratory",
+    icon: Microscope,
+    name: "نظام المختبر",
+    tagline: "إدارة الفحوصات والعينات والنتائج والأقسام والفواتير لمختبرك الطبي.",
+    stats: [
+      { icon: Users, label: "المرضى", value: "3" },
+      { icon: Microscope, label: "الفحوصات", value: "12" },
+      { icon: Receipt, label: "أوامر اليوم", value: "4" },
+      { icon: Wallet, label: "إيرادات الشهر", value: "18,400 ر.س" },
+    ],
+    tableTitle: "أحدث أوامر الفحص",
+    rows: [
+      ["ORD-0001", "محمد الشرعبي", "فحص دم شامل", "مكتمل"],
+      ["ORD-0002", "فاطمة الشميري", "سكر صائم", "قيد التنفيذ"],
+      ["ORD-0003", "عبدالله النزيلي", "تحليل بول", "بانتظار العينة"],
+      ["ORD-0004", "هدى القباطي", "وظائف كبد", "تم إصدار النتيجة"],
+    ],
+  },
+  {
+    key: "optometry",
+    icon: Eye,
+    name: "نظام عيادة العيون",
+    tagline: "إدارة المرضى والمواعيد والفحوصات البصرية ووصفات النظارات والعدسات والفواتير لعيادتك.",
+    stats: [
+      { icon: Users, label: "المرضى", value: "680" },
+      { icon: CalendarDays, label: "مواعيد اليوم", value: "23" },
+      { icon: Receipt, label: "فواتير اليوم", value: "18" },
+      { icon: Wallet, label: "إيرادات الشهر", value: "96,000 ر.س" },
+    ],
+    tableTitle: "مواعيد اليوم",
+    rows: [
+      ["أحمد الحميري", "فحص قاع العين", "09:00", "مؤكد"],
+      ["سارة العنسي", "قياس النظر", "10:30", "مؤكد"],
+      ["خالد الشامي", "متابعة", "12:00", "منتظر"],
+      ["نورة الحكيمي", "وصفة نظارة", "14:00", "مؤكد"],
+    ],
+  },
+  {
+    key: "pos",
+    icon: Store,
+    name: "نظام نقاط البيع",
+    tagline: "نقاط بيع سريعة مع باركود، وإدارة المنتجات والمخازن والمبيعات والعملاء والموردين والصندوق.",
+    stats: [
+      { icon: ShoppingCart, label: "مبيعات اليوم", value: "62" },
+      { icon: Wallet, label: "إيرادات اليوم", value: "4,180 ر.س" },
+      { icon: Package, label: "المنتجات", value: "1,240" },
+      { icon: Users, label: "العملاء", value: "210" },
+    ],
+    tableTitle: "أحدث الفواتير",
+    rows: [
+      ["INV-1058", "أحمد عبدالله", "اليوم", "840 ر.س"],
+      ["INV-1057", "سوبر ماركت النور", "اليوم", "1,560 ر.س"],
+      ["INV-1056", "مطعم الشرق", "أمس", "720 ر.س"],
+      ["INV-1055", "فاطمة سالم", "أمس", "98 ر.س"],
+    ],
+  },
 ];
 
 const PERKS = ["بدون تسجيل", "بدون بطاقة ائتمان", "بيانات تجريبية جاهزة"];
 
 /* Standalone live demo systems: linked directly (proxied same-origin) instead
    of the 3-day trial flow. */
-const LIVE_KEYS = new Set<SystemKey>(["grocery", "clinic", "cafe", "hospital", "dental", "pharmacy"]);
+const LIVE_KEYS = new Set<SystemKey>(["grocery", "clinic", "cafe", "hospital", "dental", "pharmacy", "laboratory", "optometry", "pos"]);
 
 const LIVE_HREF: Record<string, string> = {
   grocery: "/grocery",
@@ -178,6 +256,9 @@ const LIVE_HREF: Record<string, string> = {
   hospital: "/hospital",
   dental: "/dental",
   pharmacy: "/pharmacy",
+  laboratory: "/laboratory",
+  pos: "/pos",
+  optometry: "/optometry",
 };
 
 const LIVE_LABEL: Record<string, string> = {
@@ -187,6 +268,9 @@ const LIVE_LABEL: Record<string, string> = {
   hospital: "افتح نظام المستشفى",
   dental: "افتح نظام عيادة اسنان",
   pharmacy: "افتح نظام الصيدلية",
+  laboratory: "افتح نظام المختبر",
+  optometry: "افتح نظام عيادة العيون",
+  pos: "افتح نظام نقاط البيع",
 };
 
 function formatDays(days: number, hours: number): string {
@@ -465,6 +549,9 @@ const LIVE_EMBED_HREF: Record<string, string> = {
   hospital: "/hospital",
   dental: "/dental",
   pharmacy: "/pharmacy",
+  laboratory: "/laboratory",
+  pos: "/pos",
+  optometry: "/optometry",
 };
 
 function LiveEmbed({ system }: { system: SystemDef }) {

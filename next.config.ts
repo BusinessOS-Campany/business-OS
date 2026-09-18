@@ -19,6 +19,8 @@ const nextConfig: NextConfig = {
     const dentalUrl = process.env.DENTAL_URL ?? "http://localhost:3106";
     const labUrl = process.env.LAB_URL ?? "http://localhost:3107";
     const pharmacyUrl = process.env.PHARMACY_URL ?? "http://localhost:5000";
+    const posUrl = process.env.POS_URL ?? "http://localhost:3108";
+    const optometryUrl = process.env.OPTOM_URL ?? "http://localhost:3109";
     return {
       beforeFiles: [
         {
@@ -96,6 +98,36 @@ const nextConfig: NextConfig = {
         {
           source: "/pharmacy/:path*",
           destination: `${pharmacyUrl}/pharmacy/:path*`,
+        },
+{
+          // Pharmacy POS/inventory system (standalone Next app in
+          // public/pharmacy, basePath /pharmacy, port 5000).
+          source: "/pharmacy",
+          destination: `${pharmacyUrl}/pharmacy`,
+        },
+        {
+          source: "/pharmacy/:path*",
+          destination: `${pharmacyUrl}/pharmacy/:path*`,
+        },
+        {
+          // POS System (standalone Next app in public/POS System,
+          // basePath /pos, port 3108). Same pattern as /pharmacy.
+          source: "/pos",
+          destination: `${posUrl}/pos`,
+        },
+        {
+          source: "/pos/:path*",
+          destination: `${posUrl}/pos/:path*`,
+        },
+        {
+          // Eye Clinic system (standalone Next app in
+          // public/Optometry  Eye Clinic System, basePath /optometry, port 3109).
+          source: "/optometry",
+          destination: `${optometryUrl}/optometry`,
+        },
+        {
+          source: "/optometry/:path*",
+          destination: `${optometryUrl}/optometry/:path*`,
         },
       ],
     };
