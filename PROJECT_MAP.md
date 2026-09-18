@@ -189,6 +189,16 @@ Everything below is NOT YET IMPLEMENTED. Updated continuously; entries removed o
 
 ---
 
+## 2026-09-17 — DENTAL PROD INCIDENT: login 500 (fixed + redeployed)
+
+- **Symptom:** `business-os-company.vercel.app/dental/login` submits demo/demo123 → server action 500 → "This page couldn't load. A server error occurred."
+- **Root cause:** deployed dental bundle queried the **`public`** schema on the shared Supabase (81 tables = Hospital app). Dental's 41 tables live in schema **`dental`**. `dental."User"` has column `name`; `public."User"` has `nameAr`/`nameEn` → Prisma error `The column "User.name" does not exist` → 500 on every DB query (login, dashboard).
+- **Fix (working-tree changes, deployed via `vercel deploy --prod` from `public/dental-Clinic--main`):** `src/lib/prisma.ts` → `new PrismaPg(url, { schema: "dental" })`; `src/lib/dal.ts` → `requireAuth` redirects `/login?expired=1`; `src/proxy.ts` → drop stale cookie when `?expired=1` (breaks redirect loop). **⚠ Still uncommitted in monorepo git.**
+- **Verified** DB-layer (exact loginAction query): pre-fix query fails with the column error; post-fix query finds `demo`, bcrypt `demo123` valid, SUPER_ADMIN, 78 perms, dashboard query OK. Live headless probe: login → `/dental/dashboard` (16 patients, 3 appts, revenue 283,000) 0 errors.
+- **Gotcha:** Supabase pooler needs SNI username prefix `postgres.<ref>`; psql parsing must handle `postgresql://` scheme + literal quotes in `.env`.
+
+---
+
 ## 2026-09 — PHARMACY SUB-APP (implemented + verified)
 
 Standalone Next.js 16 + Prisma 7 app under `public/pharmacy/` (own root layout, own package.json, own DB). **Tracked as a git submodule** (`.gitmodules`: `public/pharmacy` → `https://github.com/gmsnow/pharmacy.git`) — commit/push inside `public/pharmacy`, then bump the gitlink pointer in the monorepo (`git add public/pharmacy`); never edit via the monorepo index.

@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
     const celiaUrl = process.env.CELIA_URL ?? "http://localhost:3104";
     const hospitalUrl = process.env.HOSPITAL_URL ?? "http://localhost:3105";
     const dentalUrl = process.env.DENTAL_URL ?? "http://localhost:3106";
+    const labUrl = process.env.LAB_URL ?? "http://localhost:3107";
     const pharmacyUrl = process.env.PHARMACY_URL ?? "http://localhost:5000";
     return {
       beforeFiles: [
@@ -75,6 +76,16 @@ const nextConfig: NextConfig = {
         {
           source: "/dental/:path*",
           destination: `${dentalUrl}/dental/:path*`,
+        },
+        {
+          // Al-Mukhtabar laboratory information system (standalone Next
+          // app in public/laboratory--main, basePath /laboratory, port 3107).
+          source: "/laboratory",
+          destination: `${labUrl}/laboratory`,
+        },
+        {
+          source: "/laboratory/:path*",
+          destination: `${labUrl}/laboratory/:path*`,
         },
         {
           // Pharmacy POS/inventory system (standalone Next app in
