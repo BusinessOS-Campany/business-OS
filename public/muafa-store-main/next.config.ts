@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   basePath: "/grocery",
+  outputFileTracingIncludes: {
+    "/api/reports/print": ["./src/features/reports/ejs/*.ejs"],
+    "/api/reports/pdf": ["./src/features/reports/pdf/fonts/*"],
+  },
   async headers() {
     return [
       {

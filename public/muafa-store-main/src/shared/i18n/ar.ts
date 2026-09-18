@@ -212,6 +212,7 @@ const ar = {
     title: "التقارير", dateRange: "الفترة الزمنية",
     generatedAt: "تاريخ الإنشاء", direction: "الاتجاه", rtl: "من اليمين إلى اليسار",
     endOfReport: "نهاية التقرير",
+    signManagement: "إدارة المتجر", signSecretary: "السكرتارية",
     salesReport: "تقرير المبيعات", purchasesReport: "تقرير المشتريات", profitReport: "تقرير الأرباح",
     inventoryReport: "تقرير المخزون", customersReport: "تقرير العملاء",
     suppliersReport: "تقرير الموردين", expensesReport: "تقرير المصروفات",
