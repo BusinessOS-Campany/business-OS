@@ -143,6 +143,48 @@
   main {
     padding: 0 !important;
   }
+
+  /* Professional A4 looks: repeat table headers across pages, zebra
+     striping, crisp ink-friendly rules, and compact type so every
+     column fits on the sheet. Scoped to the report paper only. */
+  #pdf-paper thead {
+    display: table-header-group;
+  }
+  #pdf-paper tbody,
+  #pdf-paper tfoot {
+    display: table-row-group;
+  }
+  #pdf-paper table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  #pdf-paper th,
+  #pdf-paper td {
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 11px;
+    line-height: 1.4;
+    padding: 4px 6px;
+  }
+  #pdf-paper thead th {
+    border-bottom: 2px solid #0f172a;
+    color: #0f172a !important;
+    font-weight: 700;
+    background: #f8fafc !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  #pdf-paper tbody tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  #pdf-paper tbody tr:nth-child(even) {
+    background: #f8fafc !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  #pdf-paper tbody tr:last-child {
+    border-bottom: none;
+  }
   tr,
   .avoid-break {
     break-inside: avoid;
