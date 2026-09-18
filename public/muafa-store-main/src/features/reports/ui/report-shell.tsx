@@ -8,7 +8,7 @@ import { formatDateTime, formatDate } from "@/shared/core/format";
 import { Sprout, Clock, MoveHorizontal } from "lucide-react";
 import { ExportButton } from "@/features/inventory/ui/export-csv-button";
 import { exportReportAction } from "../actions";
-import { PrintButton } from "./print-button";
+import { PdfButton, PrintButton } from "./print-button";
 
 /** Shared report page: screen toolbar (export/PDF/dates, outside the paper) + a styled A4 paper captured for the PDF. */
 export async function ReportHeader({
@@ -41,6 +41,7 @@ export async function ReportHeader({
         <div className="ms-auto flex flex-wrap items-center gap-2">
           <ExportButton action={exportAction} filename={`${family}-report`} label={t.common.export} />
           <PrintButton label={t.common.print} />
+          <PdfButton label={t.common.pdf} />
         </div>
       </div>
       <form method="GET" action={basePath} className="flex flex-wrap items-end gap-2 print:hidden">
@@ -97,7 +98,7 @@ export async function ReportHeader({
 
 export function SummaryCards({ items }: { items: { label: string; value: string; accent?: boolean }[] }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 print:hidden">
       {items.map((s) => (
         <Card key={s.label} className={s.accent ? "border-primary/40 bg-primary/5" : undefined}>
           <CardContent className="px-4 py-3">
