@@ -12,11 +12,10 @@ export default async function SalesReportPage({ searchParams }: PageProps<"/repo
   const { summary, buckets, byCashier, products } = await salesReport(range);
 
   return (
-    <div className="space-y-4" id="pdf-paper">
-      <ReportHeader
+    <ReportHeader
         title={t.reports.salesReport} basePath="/reports/sales" family="sales"
         fromISO={range.fromISO} toISO={range.toISO}
-      />
+      >
       <SummaryCards items={[
         { label: t.reports.invoicesCol, value: formatNumber(summary.invoices, locale) },
         { label: t.reports.grossSales, value: formatMoney(summary.grossSales, locale) },
@@ -104,6 +103,6 @@ export default async function SalesReportPage({ searchParams }: PageProps<"/repo
           </Table>
         </ReportSection>
       </div>
-    </div>
+    </ReportHeader>
   );
 }

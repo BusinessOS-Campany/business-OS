@@ -8,21 +8,23 @@ import { formatDateTime, formatDate } from "@/shared/core/format";
 import { Sprout, Clock, MoveHorizontal } from "lucide-react";
 import { ExportButton } from "@/features/inventory/ui/export-csv-button";
 import { exportReportAction } from "../actions";
-import { PdfActions } from "@/components/pdf-actions";
+import { PrintButton } from "./print-button";
 
-/** Shared report page header: title, GET date-range filter, print + CSV export. */
+/** Shared report page: screen toolbar (export/PDF/dates, outside the paper) + a styled A4 paper captured for the PDF. */
 export async function ReportHeader({
   title,
   basePath,
   family,
   fromISO,
   toISO,
+  children,
 }: {
   title: string;
   basePath: string;
   family: string;
   fromISO: string;
   toISO: string;
+  children: React.ReactNode;
 }) {
   const { t, locale } = await getT();
   const store = await getStoreSettings();
@@ -33,40 +35,12 @@ export async function ReportHeader({
   const exportAction = exportReportAction.bind(null, family, fromISO, toISO);
 
   return (
-    <div className="space-y-3">
-      <div className="border-b pb-3">
-        <p className="text-sm font-semibold text-primary">{storeName}</p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight">{title}</h1>
-        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground print:[&_span]:text-black">
-          <span className="inline-flex items-center gap-1.5">
-            <Sprout className="size-3.5" />
-            {t.reports.csv.period}: <bdi dir="ltr">{fromLabel} ← {toLabel}</bdi>
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <Clock className="size-3.5" />
-            {t.reports.generatedAt}: <span dir="ltr">{generatedAt}</span>
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <MoveHorizontal className="size-3.5" />
-            {t.reports.direction}: {t.reports.rtl}
-          </span>
-        </div>
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 print:hidden">
         <h2 className="sr-only">{t.common.export}</h2>
-        <div className="ms-auto flex flex-wrap items-center gap-2 print:hidden">
+        <div className="ms-auto flex flex-wrap items-center gap-2">
           <ExportButton action={exportAction} filename={`${family}-report`} label={t.common.export} />
-          <PdfActions
-            targetId="pdf-paper"
-            fileName={`${family}-report_${fromISO}_to_${toISO}`}
-            captureWidth={1280}
-            decorate
-            labels={{
-              sharePdf: t.common.sharePdf,
-              generatingPdf: t.common.generatingPdf,
-              shareFailed: t.common.shareFailed,
-            }}
-          />
+          <PrintButton label={t.common.print} />
         </div>
       </div>
       <form method="GET" action={basePath} className="flex flex-wrap items-end gap-2 print:hidden">
@@ -83,6 +57,40 @@ export async function ReportHeader({
           {t.common.reset}
         </Link>
       </form>
+
+      {/* The document — sole content captured by the PDF */}
+      <div id="pdf-paper" className="space-y-4">
+        <header className="overflow-hidden rounded-xl border bg-background">
+          <div className="h-1.5 w-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600" />
+          <div className="bg-gradient-to-b from-primary/5 to-transparent px-4 py-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary">{storeName}</p>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight">{title}</h1>
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground print:[&_span]:text-black">
+              <span className="inline-flex items-center gap-1.5">
+                <Sprout className="size-3.5" />
+                {t.reports.csv.period}: <bdi dir="ltr">{fromLabel} ← {toLabel}</bdi>
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Clock className="size-3.5" />
+                {t.reports.generatedAt}: <span dir="ltr">{generatedAt}</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <MoveHorizontal className="size-3.5" />
+                {t.reports.direction}: {t.reports.rtl}
+              </span>
+            </div>
+          </div>
+        </header>
+
+        {children}
+
+        <footer className="flex flex-wrap items-center justify-between gap-2 border-t pt-3 text-xs text-muted-foreground print:[&_span]:text-black">
+          <span className="font-semibold text-primary">{storeName}</span>
+          <span aria-hidden />
+          <span>{t.reports.endOfReport}</span>
+          <span dir="ltr">{generatedAt}</span>
+        </footer>
+      </div>
     </div>
   );
 }
