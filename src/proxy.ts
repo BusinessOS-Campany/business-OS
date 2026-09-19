@@ -67,6 +67,8 @@ export function proxy(request: NextRequest) {
     pathname.startsWith("/celia") ||
     pathname.startsWith("/dental") ||
     pathname.startsWith("/pharmacy") ||
+    pathname.startsWith("/laboratory") ||
+    pathname.startsWith("/pos") ||
     pathname.startsWith("/optometry");
 
   for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
