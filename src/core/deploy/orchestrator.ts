@@ -4,6 +4,7 @@ import { commitFiles, branchHead, isGithubConfigured } from "./github";
 import { deploySystem, type ExecutorHooks } from "./executor";
 import { narrowByPaths, planWebhook, type DeployPlan, type EligibleSystem } from "./plan";
 import { enqueue } from "./queue";
+import { propagateIfReal } from "./fanout";
 import {
   getSystemRecord,
   loadRegistry,
@@ -164,21 +165,54 @@ export async function handleWebhook(input: HandleWebhookInput): Promise<HandleWe
         void patchRecord(id, { status: "stale", lastError: "superseded by a newer commit" });
       },
       run: async () => {
-        const fresh = getSystemRecord(id);
-        if (!fresh) return;
-        try {
-          await deploySystem(fresh, input.hooks);
-        } catch (err) {
-          // deploySystem already recorded the failure; nothing to do but log,
-          // so the queue is not poisoned by an unhandled rejection.
-          logger.error({ err, systemId: id }, "[deploy] build failed");
-        }
+        await runDeploy(id, input.hooks, "webhook");
       },
     });
     queued.push(id);
   }
 
   return { accepted: true, plan, queued, duplicate: false };
+}
+
+/**
+ * One queued run: build the system, then propagate it to customers when it is a
+ * real system.
+ *
+ * Both entry points — the webhook and the sweep — run exactly this, so the
+ * "real deploys fan out to every customer clone, demo deploys never do" rule is
+ * written once. The fan-out happens only after the master build succeeded; there
+ * is no point pushing a master that did not compile to customers.
+ *
+ * Never throws: the caller is a queue slot, and an exception here would leave the
+ * queue's bookkeeping stuck. Every failure is already recorded on the system's
+ * own row by `deploySystem`, and the fan-out records its own per-org outcomes.
+ */
+async function runDeploy(
+  systemId: string,
+  hooks: ExecutorHooks | undefined,
+  source: "webhook" | "sweep",
+): Promise<void> {
+  const fresh = getSystemRecord(systemId);
+  if (!fresh) return;
+  try {
+    await deploySystem(fresh, hooks);
+  } catch (err) {
+    // deploySystem already recorded the failure; nothing to do but log, so the
+    // queue is not poisoned by an unhandled rejection.
+    logger.error({ err, systemId, source }, "[deploy] build failed");
+    return;
+  }
+
+  // The master is live. If it is a real system, every customer that has it
+  // installed is now running the previous build; update them now rather than on
+  // their next visit. A demo system has no customers, so this is a no-op for it.
+  try {
+    await propagateIfReal(systemId);
+  } catch (err) {
+    // Propagation is best-effort by design: the master deploy already succeeded
+    // and must not be reported as failed because one customer clone would not boot.
+    logger.error({ err, systemId, source }, "[deploy] propagation failed");
+  }
 }
 
 /**
@@ -225,13 +259,7 @@ export async function reconcileAgainstGithub(hooks: ExecutorHooks = {}): Promise
       commit: head.sha,
       queuedAt: Date.now(),
       run: async () => {
-        const fresh = getSystemRecord(record.id);
-        if (!fresh) return;
-        try {
-          await deploySystem(fresh, hooks);
-        } catch (err) {
-          logger.error({ err, systemId: record.id }, "[deploy] sweep build failed");
-        }
+        await runDeploy(record.id, hooks, "sweep");
       },
     });
     queued.push(record.id);
