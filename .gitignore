@@ -1,0 +1,104 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# local dev data
+/.data/
+
+# per-org system clones (customer-owned copies of system/<slug>)
+/orginazition/
+/.system-runtime/
+
+.vercel
+.env*
+
+# Nested copies (system/<slug>, demo-systems/<slug>) are full app trees.
+# The anchored patterns above only match the repo root, so these must be
+# unanchored or git tracks ~4GB of node_modules + .next caches.
+node_modules/
+.next/
+.next-dev/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+
+# Local database dumps and schema exports. `backups/public-data-*.sql` is a
+# pg_dump of live rows and carries real Google OAuth refresh tokens (`ya29.*`)
+# and Better Auth session tokens, so it must never enter git.
+backups/
+databases/*.sql
+
+# pg_dump archives. These are the same live data in binary form — every org's
+# own database (org_gmsnow, org_ajwad, …) plus the platform's — and `databases/`
+# is staged by `git add -A` like any other folder. Caught during the initial
+# import: the `.sql` rule above missed `.dump`, which is the format actually
+# used, so this is the rule that keeps customer data out of GitHub.
+databases/pgdumps/
+databases/**/*.dump
+
+# Previous `next build` output, kept beside the live `.next` so a bad build can
+# be compared against the last good one. Reproducible from source and ~670 MB
+# each; committing them would put the repo over GitHub's size limits for no gain.
+.next-prev/
+.next-pwa-bak/
+**/.next-prev/
+**/.next-pwa-bak/
+
+# Runtime process logs
+*.log
+prod.err.log
+prod.out.log
+
+# Uploaded files written by the dental runtime. `src/lib/storage.ts` resolves its
+# root from `process.cwd()`, which is the tree the app runs in, so this lands
+# inside the source checkout for the master and demo trees. Both already hold an
+# empty serverdata/uploads/imaging, and `/demo/dental` is publicly reachable, so a
+# patient's file would otherwise sit one `git add -A` away from being committed.
+# Per-org clones under orginazition/ are covered by that rule instead. Nothing
+# tracked lives under any serverdata.
+**/serverdata/
+
+# Vendor git history for the sub-app trees that arrived as clones of
+# github.com/gmsnow/dental-Clinic-. Renamed from .git so the platform repo can
+# own our fork changes (basePath, SYSTEM_BASE_PATH, schema wiring); the upstream
+# commits are still on GitHub. Restore the name to get the clone back.
+**/.git.vendor-backup/

@@ -1,0 +1,9 @@
+tunnel: 20e9adb0-d0fa-42ce-a226-f06beafd21e8
+credentials-file: /root/BusinessOS-ERP-portable/cloudflared/20e9adb0-d0fa-42ce-a226-f06beafd21e8.json
+
+ingress:
+  - hostname: bosc.dpdns.org
+    service: http://localhost:3100
+  - hostname: "*.bosc.dpdns.org"
+    service: http://localhost:3100
+  - service: http_status:404

@@ -1,0 +1,38 @@
+{
+  // The production build type-checks the application, not the test suite.
+  //
+  // `next build` otherwise walks `tests/**` as if the tests shipped in the
+  // bundle. Here that fails an otherwise clean build on six errors that belong
+  // to four `grocery-*` guard tests, written against a mount-aware
+  // `system/grocery` this tree never received — which cost the platform its
+  // production build entirely.
+  //
+  // Scope, never slack: this file extends the root and overrides `exclude` and
+  // nothing else. It cannot check a file more loosely than `tsconfig.json` does,
+  // and `npm run typecheck` still runs against the root and still reports those
+  // errors. See tests/core/build-tsconfig-scope.test.ts, which pins both halves.
+  "extends": "./tsconfig.json",
+  // `exclude` replaces the base list outright instead of merging into it, so
+  // every entry from the root's `exclude` is repeated here.
+  "exclude": [
+    "node_modules",
+    "orginazition",
+    "apps/grocery",
+    // The whole tree, not just `system/grocery` and `system/dental` as the root
+    // names them: Next normalises these entries on build. Wider than the root,
+    // never narrower, so it cannot hide an error in code that ships.
+    "system",
+    "demo-systems",
+    "public/grocery",
+    "public/samaSYSTEM-main",
+    "public/GMstore",
+    "public/celia-main",
+    "public/Hospital--main",
+    "public/pharmacy",
+    "public/laboratory--main",
+    "public/Optometry  Eye Clinic System",
+    "public/POS System",
+    "public/earth",
+    "tests"
+  ]
+}

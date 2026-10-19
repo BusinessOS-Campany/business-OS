@@ -1,0 +1,41 @@
+{
+  "$comment": [
+    "Per-system deploy overrides. Optional: discovery derives everything here from",
+    "where a folder sits (see src/core/deploy/discovery.ts), and this file only",
+    "changes the defaults. Listing them explicitly documents the mapping and gives",
+    "a single place to move one system to a different branch later.",
+    "",
+    "Keys may be a system id ('demo:clinicos') or a bare slug, which applies to",
+    "both trees ('clinicos' -> demo:clinicos and real:clinicos).",
+    "",
+    "productionBranch: the branch whose push triggers a deploy.",
+    "watchPaths: repo-relative globs; a commit touching none of them is ignored."
+  ],
+  "productionBranch": "main",
+  "systems": {
+    "demo:clinicos": {
+      "productionBranch": "main",
+      "watchPaths": ["demo-systems/clinicos/**"]
+    },
+    "demo:dental": {
+      "productionBranch": "main",
+      "watchPaths": ["demo-systems/dental/**"]
+    },
+    "demo:grocery": {
+      "productionBranch": "main",
+      "watchPaths": ["demo-systems/grocery/**"]
+    },
+    "real:clinicos": {
+      "productionBranch": "main",
+      "watchPaths": ["system/clinicos/**"]
+    },
+    "real:dental": {
+      "productionBranch": "main",
+      "watchPaths": ["system/dental/**"]
+    },
+    "real:grocery": {
+      "productionBranch": "main",
+      "watchPaths": ["system/grocery/**"]
+    }
+  }
+}
