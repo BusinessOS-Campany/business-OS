@@ -76,9 +76,33 @@ function Test-PortListening {
     Select-Object -First 1)
 }
 
+function Resolve-NodeBinary {
+  # SYSTEM has a different PATH than the logged-on user. Prefer a node that the
+  # machine already knows about, then the one bundled next to the running shell.
+  $candidates = @()
+  $cmd = Get-Command node -ErrorAction SilentlyContinue
+  if ($cmd) { $candidates += $cmd.Source }
+  $candidates += "C:\Program Files\nodejs\node.exe"
+  foreach ($c in $candidates) { if ($c -and (Test-Path -LiteralPath $c)) { return $c } }
+  return $null
+}
+
 function Start-Platform {
-  # `npm run serve` is `next start -p 3100`. Started through cmd.exe so the
-  # redirects land in the same log files the watchdog uses.
+  # Launch Next directly instead of `npm run serve`. Under SYSTEM, npm is often
+  # absent from PATH and the npm wrapper would fail silently, which is the whole
+  # reason a boot task needs its own start path rather than reusing the user's.
+  $nextBin = Join-Path $WorkingDirectory "node_modules\next\dist\bin\next"
+  $nodeBin = Resolve-NodeBinary
+
+  if ($nodeBin -and (Test-Path -LiteralPath $nextBin)) {
+    Start-Process -FilePath $nodeBin -ArgumentList @($nextBin, "start", "-p", "$Port") `
+      -WorkingDirectory $WorkingDirectory -WindowStyle Hidden `
+      -RedirectStandardOutput $ServeOut -RedirectStandardError $ServeErr | Out-Null
+    return
+  }
+
+  # Fallback: the npm wrapper, for the interactive case where it is on PATH.
+  Write-Log "WARN" "next binary or node not found; falling back to 'npm run serve'"
   $arg = "/c npm run serve >> `"$ServeOut`" 2>> `"$ServeErr`""
   Start-Process -FilePath "cmd.exe" -ArgumentList $arg -WorkingDirectory $WorkingDirectory -WindowStyle Hidden | Out-Null
 }
@@ -151,7 +175,7 @@ if ($platformProbe.Ok) {
 } elseif ($platformListening) {
   Write-Log "WARN" "port $Port is bound but not answering; leaving it to the watchdog"
 } else {
-  Write-Log "INFO" "platform is down, starting (npm run serve)"
+  Write-Log "INFO" "platform is down, starting (next start -p $Port)"
   Start-Platform
   if (-not $NoWait) {
     $recovered = Wait-Platform -Seconds 120

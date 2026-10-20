@@ -8,8 +8,12 @@ param(
   [int]$Port = 3100,
   [string]$ProbePath = "/signin",
   [string]$WorkingDirectory = "",
-  [string]$StartCommand = "npm run serve",
-  [string]$BuildCommand = "npm run build",
+  # Empty means "work it out": under SYSTEM there is no npm on PATH, so a bare
+  # `npm run serve` would fail silently and the watchdog would report a restart
+  # that never happened. Resolve-StartCommand/BuildCommand below fall back to the
+  # node + next binaries by absolute path, which work in either context.
+  [string]$StartCommand = "",
+  [string]$BuildCommand = "",
   [int]$TimeoutSec = 15,
   [int]$Threshold = 2,
   [int]$BootGraceSec = 180,
@@ -31,6 +35,41 @@ $ServeErr = Join-Path $DataDir "prod.err.log"
 $BuildLog = Join-Path $DataDir "watchdog-build.log"
 
 if (-not (Test-Path -LiteralPath $DataDir)) { New-Item -ItemType Directory -Force -Path $DataDir | Out-Null }
+
+# Resolve the commands to run when the caller did not supply them. Prefer the
+# node + next binaries by absolute path: a boot/service context (SYSTEM) has no
+# npm on PATH, and `cmd /c npm ...` would exit non-zero with nothing in the log,
+# leaving the platform down while the watchdog reports success.
+function Resolve-NodeExe {
+  $cmd = Get-Command node -ErrorAction SilentlyContinue
+  $candidates = @()
+  if ($cmd) { $candidates += $cmd.Source }
+  $candidates += @(
+    "C:\Program Files\nodejs\node.exe",
+    "C:\Program Files (x86)\nodejs\node.exe"
+  )
+  foreach ($c in $candidates) { if ($c -and (Test-Path -LiteralPath $c)) { return $c } }
+  return $null
+}
+
+$nodeExe = Resolve-NodeExe
+$nextBin = Join-Path $WorkingDirectory "node_modules\next\dist\bin\next"
+
+if (-not $StartCommand) {
+  if ($nodeExe -and (Test-Path -LiteralPath $nextBin)) {
+    $StartCommand = "`"$nodeExe`" `"$nextBin`" start -p $Port"
+  } else {
+    $StartCommand = "npm run serve"
+  }
+}
+if (-not $BuildCommand) {
+  if ($nodeExe -and (Test-Path -LiteralPath $nextBin)) {
+    # Same heap floor scripts/build.ts sets; without it webpack dies on this app.
+    $BuildCommand = "`"$nodeExe`" --max-old-space-size=16384 `"$nextBin`" build --webpack"
+  } else {
+    $BuildCommand = "npm run build"
+  }
+}
 
 function Write-Log {
   param([string]$Level, [string]$Message)
@@ -171,12 +210,47 @@ function Stop-Platform {
   return ($killed | Select-Object -Unique) -join ","
 }
 
+# Both starters launch the process DIRECTLY rather than through
+# `cmd.exe /c "<quoted exe>" ... >> log`. That cmd form fails silently here: the
+# quoted path plus redirections never runs the server, so the watchdog would kill
+# a healthy platform, "restart" it into nothing, and report success. Verified by
+# hand before changing this. Start-Platform is still the one the startup script
+# uses (a direct Start-Process), so the two stay consistent.
+
+function Split-CommandLine {
+  # Turn the resolved command string into FilePath + ArgumentList. Handles the
+  # quoted absolute paths produced by the resolvers above.
+  param([string]$CommandLine)
+  $rx = [regex]'"([^"]+)"|(\S+)'
+  $parts = @()
+  foreach ($m in $rx.Matches($CommandLine)) {
+    $parts += $(if ($m.Groups[1].Success) { $m.Groups[1].Value } else { $m.Groups[2].Value })
+  }
+  if ($parts.Count -eq 0) { return $null }
+  return [pscustomobject]@{ File = $parts[0]; Args = @($parts[1..($parts.Count - 1)]) }
+}
+
 function Start-Platform {
+  $parsed = Split-CommandLine $StartCommand
+  if ($parsed -and (Test-Path -LiteralPath $parsed.File)) {
+    Start-Process -FilePath $parsed.File -ArgumentList $parsed.Args `
+      -WorkingDirectory $WorkingDirectory -WindowStyle Hidden `
+      -RedirectStandardOutput $ServeOut -RedirectStandardError $ServeErr | Out-Null
+    return
+  }
+  # Fallback for a bare `npm run serve` on an interactive PATH.
   $arg = "/c $StartCommand >> `"$ServeOut`" 2>> `"$ServeErr`""
   Start-Process -FilePath "cmd.exe" -ArgumentList $arg -WorkingDirectory $WorkingDirectory -WindowStyle Hidden | Out-Null
 }
 
 function Start-Build {
+  $parsed = Split-CommandLine $BuildCommand
+  if ($parsed -and (Test-Path -LiteralPath $parsed.File)) {
+    Start-Process -FilePath $parsed.File -ArgumentList $parsed.Args `
+      -WorkingDirectory $WorkingDirectory -WindowStyle Hidden `
+      -RedirectStandardOutput $BuildLog -RedirectStandardError "$BuildLog.err" | Out-Null
+    return
+  }
   $arg = "/c $BuildCommand >> `"$BuildLog`" 2>&1"
   Start-Process -FilePath "cmd.exe" -ArgumentList $arg -WorkingDirectory $WorkingDirectory -WindowStyle Hidden | Out-Null
 }
