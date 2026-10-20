@@ -350,6 +350,40 @@ function hasPrisma(cwd: string): boolean {
 }
 
 /**
+ * True when the folder is a Next app, which is what decides whether the build
+ * may be run directly with webpack instead of through the system's own script.
+ *
+ * Detected from `package.json` rather than a file probe so it does not depend on
+ * `node_modules` being installed yet: the dependencies list is the app's own
+ * declaration, and it is present in the clone the moment it is copied.
+ */
+function isNextApp(cwd: string): boolean {
+  const pkg = readJsonFile<{
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+  }>(join(cwd, "package.json"), {});
+  return Boolean(pkg.dependencies?.next ?? pkg.devDependencies?.next);
+}
+
+/** The heap floor `scripts/build.ts` uses for the platform's own build. */
+const DEFAULT_MAX_OLD_SPACE_MB = 16384;
+
+/**
+ * Raise `--max-old-space-size` to the floor, never lower it.
+ *
+ * An explicit value in the environment wins, so a machine that has deliberately
+ * configured a different ceiling is not overridden; this only covers the case
+ * where nothing was set and webpack would otherwise die part-way through.
+ */
+function withHeapFloor(nodeOptions: string | undefined): string {
+  const requested = /--max-old-space-size=(\d+)/.exec(nodeOptions ?? "");
+  const currentMb = requested ? Number(requested[1]) : 0;
+  if (currentMb >= DEFAULT_MAX_OLD_SPACE_MB) return nodeOptions ?? "";
+  const kept = (nodeOptions ?? "").trim();
+  return `${kept}${kept ? " " : ""}--max-old-space-size=${DEFAULT_MAX_OLD_SPACE_MB}`;
+}
+
+/**
  * Builds the org's copy if its source changed since the last build.
  *
  * The system's own `build` script is used, so whatever it needs to compile
@@ -379,7 +413,32 @@ async function ensureBuilt(runtime: OrgRuntime, sourceHash: string, env: NodeJS.
   if (hasPrisma(runtime.cwd)) {
     await runInFolder(runtime.cwd, "npx", ["prisma", "generate"], env, buildLog);
   }
-  if (scripts.build) {
+
+  if (isNextApp(runtime.cwd) && scripts.build) {
+    // Build a Next app with webpack rather than through its own `build` script.
+    //
+    // Two failures made this the only form that works, both observed on this
+    // machine against a real org clone:
+    //
+    //  1. Next 16 builds with Turbopack by default, and Turbopack refuses to
+    //     resolve the junction that `linkNodeModules` creates: "Symlink
+    //     node_modules could not be resolved: the symlink target leaves the
+    //     filesystem root". A junction is what makes one shared 930 MB install
+    //     serve every org, so the bundler has to be the side that gives way.
+    //  2. Webpack's compile phase exhausts the default heap on an app this size
+    //     and dies with "Ineffective mark-compacts near heap limit", so the
+    //     floor `scripts/build.ts` uses for the platform is needed here too.
+    //
+    // `prisma generate` already ran above; re-running it through the script
+    // would only repeat work. A non-Next system keeps its own build script.
+    await runInFolder(
+      runtime.cwd,
+      "npx",
+      ["next", "build", "--webpack"],
+      { ...env, NODE_OPTIONS: withHeapFloor(env.NODE_OPTIONS) },
+      buildLog,
+    );
+  } else if (scripts.build) {
     await runInFolder(runtime.cwd, "npm", ["run", "build"], env, buildLog);
   } else {
     // No build script: the system is served from source (e.g. a plain Node
