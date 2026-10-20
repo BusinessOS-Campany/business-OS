@@ -107,9 +107,21 @@ function Register-BootTask {
   $princ = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
 
   Register-ScheduledTask -TaskName $Name -Action $action -Trigger $triggers `
-    -Settings $settings -Principal $princ -Description $Description -Force | Out-Null
+    -Settings $settings -Principal $princ -Description $Description -Force -ErrorAction Stop | Out-Null
 
-  Write-Host "Registered: $Name (runs as SYSTEM, at boot + every ${EveryMinutes}m)"
+  # Read the task back. A previous run printed "Registered:" for a task that was
+  # never actually there, so the claim is now only made after the task is proven
+  # to exist with the right principal. A silent failure here is the difference
+  # between a server that survives a reboot and one that does not.
+  $check = Get-ScheduledTask -TaskName $Name -ErrorAction SilentlyContinue
+  if (-not $check) {
+    throw "Registration of '$Name' reported success but the task is not present."
+  }
+  if ($check.Principal.UserId -ne "SYSTEM") {
+    throw "Task '$Name' registered with principal '$($check.Principal.UserId)', expected SYSTEM."
+  }
+
+  Write-Host "Registered: $Name (runs as SYSTEM, at boot + every ${EveryMinutes}m)" -ForegroundColor Green
 }
 
 Register-BootTask -Name $PlatformTaskName -ScriptPath $StartupScript `
@@ -117,6 +129,27 @@ Register-BootTask -Name $PlatformTaskName -ScriptPath $StartupScript `
 
 Register-BootTask -Name $WatchdogTaskName -ScriptPath $WatchdogScript `
   -Description "Probes the Business OS platform on :3100 and rebuilds/restarts it when down or wedged."
+
+# Show what is really registered before declaring success. This is the check that
+# would have caught the earlier run where only the watchdog task existed.
+Write-Host ""
+Write-Host "Verifying what is actually registered:"
+$missing = @()
+foreach ($name in @($PlatformTaskName, $WatchdogTaskName)) {
+  $t = Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue
+  if ($t) {
+    $hasBoot = ($t.Triggers | Where-Object { $_.CimClass.CimClassName -eq "MSFT_TaskBootTrigger" }).Count -gt 0
+    Write-Host ("  [OK]   {0}  user={1}  bootTrigger={2}" -f $name, $t.Principal.UserId, $hasBoot) -ForegroundColor Green
+  } else {
+    Write-Host "  [MISS] $name" -ForegroundColor Red
+    $missing += $name
+  }
+}
+if ($missing.Count -gt 0) {
+  Write-Host ""
+  Write-Host "FAILED: these tasks were not created: $($missing -join ', ')" -ForegroundColor Red
+  exit 1
+}
 
 Write-Host ""
 Write-Host "Done. Verify with:"
