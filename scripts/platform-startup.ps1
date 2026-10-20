@@ -154,6 +154,47 @@ function Start-Tunnel {
   return $true
 }
 
+# --- demo systems ---------------------------------------------------------
+#
+# The platform reverse-proxies every `/demo/<slug>` to a separate Next process
+# on its own port (see src/core/demo/demo-systems.ts). Those processes are not
+# managed by the watchdog, which only knows about :3100, so before this section
+# a reboot left every `/demo/*` page answering 500 - the proxy had nowhere to
+# send the request. They are declared here as data rather than discovered, so a
+# typo in a port or folder is visible in one place.
+#
+# Only the apps whose source lives in this repo (demo-systems/) are started.
+# The ones vendored under public/ are started by their own package.json scripts
+# and are out of scope for a boot-time restore of the hosted demos.
+$DemoApps = @(
+  @{ Slug = "grocery";  Dir = "demo-systems\grocery";  Port = 3101 },
+  @{ Slug = "dental";   Dir = "demo-systems\dental";   Port = 3106 },
+  @{ Slug = "clinicos"; Dir = "demo-systems\clinicos"; Port = 3110 }
+)
+
+function Test-DemoApp {
+  param([hashtable]$App)
+  return Test-PortListening -P $App.Port
+}
+
+function Start-DemoApp {
+  param([hashtable]$App, [string]$NodeExe)
+  $appDir = Join-Path $WorkingDirectory $App.Dir
+  $nextBin = Join-Path $appDir "node_modules\next\dist\bin\next"
+  if (-not (Test-Path -LiteralPath $nextBin)) {
+    Write-Log "WARN" "$($App.Slug): no next binary at $nextBin; skipping"
+    return $false
+  }
+  # Absolute paths for both halves: the process starts with its working
+  # directory set to the app folder, so a relative module path would be resolved
+  # a second time against that folder and fail to load.
+  Start-Process -FilePath $NodeExe -ArgumentList @($nextBin, "start", "-p", "$($App.Port)") `
+    -WorkingDirectory $appDir -WindowStyle Hidden `
+    -RedirectStandardOutput (Join-Path $DataDir "demo-$($App.Slug).out.log") `
+    -RedirectStandardError (Join-Path $DataDir "demo-$($App.Slug).err.log") | Out-Null
+  return $true
+}
+
 # --- run ------------------------------------------------------------------
 
 Write-Log "INFO" "startup: begin (dir=$WorkingDirectory port=$Port)"
@@ -165,7 +206,11 @@ $tunnelUp = Test-Tunnel
 if ($Check) {
   Write-Host "platform : $(if ($platformProbe.Ok) { "up ($($platformProbe.Detail))" } elseif ($platformListening) { "port $Port bound but not answering ($($platformProbe.Detail))" } else { "down ($($platformProbe.Detail))" })"
   Write-Host "tunnel   : $(if ($tunnelUp) { "up" } else { "down" })"
-  if ($platformProbe.Ok -and $tunnelUp) { exit 0 } else { exit 1 }
+  foreach ($app in $DemoApps) {
+    Write-Host "demo $($app.Slug): $(if (Test-DemoApp -App $app) { "up (:$($app.Port))" } else { "down (:$($app.Port))" })"
+  }
+  $allGood = $platformProbe.Ok -and $tunnelUp -and (($DemoApps | Where-Object { -not (Test-DemoApp -App $_) }).Count -eq 0)
+  if ($allGood) { exit 0 } else { exit 1 }
 }
 
 # 1) Platform. Port bound but silent is the watchdog's wedge case; leave that to
@@ -194,6 +239,28 @@ if ($tunnelUp) {
     if (Test-Tunnel) { Write-Log "INFO" "cloudflared started" }
     else { Write-Log "WARN" "cloudflared did not stay running; check $TunnelErr" }
   }
+}
+
+# 3) Demo systems. Started only when their port is free, so this is safe to run
+#    on the 5-minute repetition: a healthy app is left untouched and one that
+#    died during the day is brought back.
+$nodeExe = Resolve-NodeBinary
+if (-not $nodeExe) {
+  Write-Log "WARN" "node not found; cannot start demo systems"
+} else {
+  foreach ($app in $DemoApps) {
+    if (Test-DemoApp -App $app) {
+      Write-Log "INFO" "demo $($app.Slug): already up on :$($app.Port)"
+      continue
+    }
+    if (Start-DemoApp -App $app -NodeExe $nodeExe) {
+      Write-Log "INFO" "demo $($app.Slug): starting on :$($app.Port)"
+    }
+  }
+  # They bind slowly on this machine (observed ~11s each from its production
+  # build), so give them a moment before the final check rather than reporting
+  # every one of them as down on a cold boot.
+  if (-not $NoWait) { Start-Sleep -Seconds 15 }
 }
 
 Write-Log "INFO" "startup: done"
