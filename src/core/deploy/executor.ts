@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { logger } from "@/core/logging/logger";
-import { fetchAndFastForward } from "./git-source";
+import { ensureClone, fetchAndFastForward } from "./git-source";
 import { patchRecord } from "./store";
 import type { DeployedSystemRecord } from "./manifest-schema";
 
@@ -186,7 +186,24 @@ export async function deploySystem(
     checkedAt: new Date().toISOString(),
   });
 
-  // 1. Pull the exact commit. Never `reset --hard`; a dirty tree refuses.
+  // 1. Make sure the checkout exists. A repo-per-system deploy pulls into a
+  //    clone; on a fresh machine the clone does not exist yet, so it is created
+  //    here before anything tries to fast-forward it. A system served from a
+  //    plain folder (no mapped repo) skips this — there is nothing to clone.
+  if (record.repo && record.clonePath && !existsSync(join(record.clonePath, ".git"))) {
+    const clone = await ensureClone(record.clonePath, record.repo);
+    if (!clone.ok) {
+      timings.totalMs = now() - startedAt;
+      await patchRecord(id, {
+        status: "failed",
+        lastError: clone.reason ?? "clone failed",
+        lastDurationSeconds: Math.round(timings.totalMs / 1000),
+      });
+      throw new DeployFailed(`clone failed for ${id}`, "pull", clone.reason ?? "clone failed");
+    }
+  }
+
+  // 2. Pull the exact commit. Never `reset --hard`; a dirty tree refuses.
   const pullStart = now();
   const pull = await fetchAndFastForward(record.localPath, record.remoteCommit ?? record.productionBranch);
   timings.pullMs = now() - pullStart;

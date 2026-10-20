@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, mkdirSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { logger } from "@/core/logging/logger";
 
 /**
@@ -266,6 +266,66 @@ export async function currentCommitFor(dir: string): Promise<string | null> {
 export function isInside(repoRoot: string, dir: string): boolean {
   const normalize = (p: string) => p.replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
   return normalize(dir).startsWith(normalize(repoRoot));
+}
+
+/**
+ * The HTTPS URL to clone a repository from, with the credential embedded when
+ * the App or token mode is available.
+ *
+ * A GitHub App cannot clone over HTTPS with the app JWT itself; it needs an
+ * installation token used as `x-access-token`. `github.ts` mints one. When no
+ * credential is configured the plain public URL is returned, which only works
+ * for a public repository — a private one will fail at fetch, loudly, which is
+ * the correct outcome rather than a silent half-deploy.
+ *
+ * The returned URL carries a secret in the App/token case and must never be
+ * logged; `redactRemote` exists for that.
+ */
+export async function authenticatedRemoteUrl(repo: string): Promise<string> {
+  const { authToken, githubConfig } = await import("./github");
+  const config = githubConfig();
+  if (config.mode !== "none") {
+    const token = await authToken(config);
+    if (token) {
+      return `https://x-access-token:${token}@github.com/${repo}.git`;
+    }
+  }
+  return `https://github.com/${repo}.git`;
+}
+
+/**
+ * Clones `repo` into `clonePath` when it is not already a working tree.
+ *
+ * This is what makes a repository-per-system deploy work on a fresh machine or
+ * after the checkout folder is cleared: the executor cannot fast-forward a
+ * folder that does not exist, so the first pull has to create it. The remote is
+ * set to `origin` with an authenticated URL so later fetches keep working.
+ *
+ * Returns true when the folder is a working tree afterwards, whether it was
+ * just cloned or already there. Never force-resets an existing checkout.
+ */
+export async function ensureClone(
+  clonePath: string,
+  repo: string,
+  timeoutMs = 600_000,
+): Promise<{ ok: boolean; reason?: string }> {
+  if (await isGitRepo(clonePath)) return { ok: true };
+
+  const url = await authenticatedRemoteUrl(repo);
+  const parent = dirname(clonePath);
+  try {
+    // The clone target's parent must exist; `git clone` creates the leaf.
+    mkdirSync(parent, { recursive: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { ok: false, reason: `could not create ${parent}: ${message}` };
+  }
+
+  const result = await runGit(["clone", url, clonePath], parent, timeoutMs);
+  if (!result.ok) {
+    return { ok: false, reason: `git clone failed: ${redactRemote(firstLine(result.stderr))}` };
+  }
+  return { ok: true };
 }
 
 export { join };

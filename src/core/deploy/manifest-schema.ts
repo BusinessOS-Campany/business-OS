@@ -60,6 +60,24 @@ export interface DeployedSystem {
    */
   repo: string | null;
   /**
+   * The folder inside `repo` this system is built from, e.g. `real` or `demo`,
+   * or null when the app sits at the repository root.
+   *
+   * One repository can hold both a `real/` and a `demo/` app — the two are
+   * different codebases and must never share a folder, but they may share a
+   * repository as sibling directories. When set, git runs against the clone and
+   * the build runs in `<clone>/<subdir>`.
+   */
+  subdir: string | null;
+  /**
+   * Absolute path of the repository checkout this system deploys from.
+   *
+   * When `subdir` is set, `localPath` is `<clonePath>/<subdir>` and this is the
+   * working-tree root the pull operates on. When the app is at the repo root,
+   * this equals `localPath`.
+   */
+  clonePath: string;
+  /**
    * Globs (relative to the repo root) whose change should trigger a rebuild of
    * this system. Defaults to `<repoPath>/**`; a shared package a system depends
    * on can be added here so editing it rebuilds every dependant.

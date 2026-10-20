@@ -1,57 +1,41 @@
 {
   "$comment": [
-    "Per-system deploy configuration.",
+    "Per-system deploy configuration. ONE GITHUB REPOSITORY PER SYSTEM SLUG.",
     "",
-    "This deployment uses ONE GITHUB REPOSITORY PER SYSTEM, not a monorepo.",
-    "A push to a system's repository deploys the system(s) mapped to it, decided",
-    "by the 'repos' table below, and a webhook must be added on each repository.",
+    "Each system repository holds TWO folders:",
+    "    real/  the customer-facing system  -> deployed into system/<slug>",
+    "    demo/  the public demo             -> deployed into demo-systems/<slug>",
+    "They are different codebases kept as siblings, so ONE repository serves",
+    "both. A push to a system's repository therefore updates BOTH the real",
+    "system and its demo together; they cannot be deployed separately. This is",
+    "the operator's explicit choice (see docs/DEPLOY-GIT.md).",
     "",
-    "'repos' maps a system to its GitHub repository:",
-    "    key   = a system id ('real:dental') or a bare slug ('dental', which",
-    "            applies to BOTH trees) — the more specific key wins.",
-    "    value = 'owner/repo'.",
-    "A system with no entry here is NEVER deployed by a webhook; it can only be",
-    "reached by the manual admin action. That is the safe default.",
+    "'cloneRoot': where the repositories are checked out on this machine. Each",
+    "system's checkout is '<cloneRoot>/<slug>'. The platform pulls the commit",
+    "there once and runs the real and demo builds from the two subfolders.",
     "",
-    "'systems' overrides per-system behaviour; 'productionBranch' and",
-    "'watchPaths' default sensibly and normally need no entry.",
+    "'repos' maps a system slug to its GitHub repository ('owner/repo'). A slug",
+    "with no entry is never deployed by a webhook.",
     "",
-    "NOTE ON DEMOS: the demo trees (demo-systems/<slug>) are a DIFFERENT",
-    "codebase from the real trees (system/<slug>), not a copy of them, so a demo",
-    "must not share its repo with the real system of the same slug — a demo push",
-    "would otherwise deploy to a customer. Demo repositories must be separate",
-    "and are left unmapped until they exist (see docs/DEPLOY-GIT.md)."
+    "'productionBranch' is the branch whose push triggers a deploy."
   ],
+  "cloneRoot": ".data/deploy/repos",
   "productionBranch": "main",
   "repos": {
-    "real:clinicos": "BusinessOS-Campany/Clinic",
-    "real:dental": "BusinessOS-Campany/dental",
-    "real:grocery": "BusinessOS-Campany/grocery"
+    "clinicos": "BusinessOS-Campany/Clinic",
+    "dental": "BusinessOS-Campany/dental",
+    "grocery": "BusinessOS-Campany/grocery"
+  },
+  "subdirs": {
+    "real": "real",
+    "demo": "demo"
   },
   "systems": {
-    "demo:clinicos": {
-      "productionBranch": "main",
-      "watchPaths": ["demo-systems/clinicos/**"]
-    },
-    "demo:dental": {
-      "productionBranch": "main",
-      "watchPaths": ["demo-systems/dental/**"]
-    },
-    "demo:grocery": {
-      "productionBranch": "main",
-      "watchPaths": ["demo-systems/grocery/**"]
-    },
-    "real:clinicos": {
-      "productionBranch": "main",
-      "watchPaths": ["system/clinicos/**"]
-    },
-    "real:dental": {
-      "productionBranch": "main",
-      "watchPaths": ["system/dental/**"]
-    },
-    "real:grocery": {
-      "productionBranch": "main",
-      "watchPaths": ["system/grocery/**"]
-    }
+    "demo:clinicos": { "productionBranch": "main" },
+    "demo:dental": { "productionBranch": "main" },
+    "demo:grocery": { "productionBranch": "main" },
+    "real:clinicos": { "productionBranch": "main" },
+    "real:dental": { "productionBranch": "main" },
+    "real:grocery": { "productionBranch": "main" }
   }
 }

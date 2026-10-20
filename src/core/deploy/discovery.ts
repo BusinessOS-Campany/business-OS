@@ -73,6 +73,10 @@ export interface DiscoveryRoots {
  */
 interface DeployConfig {
   productionBranch?: string;
+  /** Where repositories are checked out; each system gets `<cloneRoot>/<slug>`. */
+  cloneRoot?: string;
+  /** Folder names inside a system repository that hold each tree. */
+  subdirs?: { real?: string; demo?: string };
   systems?: Record<string, { productionBranch?: string; watchPaths?: string[]; repo?: string }>;
   /**
    * Per-system GitHub repositories, keyed the same way as `systems` — a system
@@ -164,8 +168,8 @@ function buildSystem(
   repoRoot: string,
   config: DeployConfig,
 ): DeployedSystem {
-  const localPath = resolve(join(treeDir, slug));
-  const repoPath = repoRelative(repoRoot, localPath);
+  // The folder the tree currently lives in (system/<slug> or demo-systems/<slug>).
+  const treePath = resolve(join(treeDir, slug));
   const label = LABELS[slug];
   const override = config.systems?.[systemId(kind, slug)] ?? config.systems?.[slug];
   // The repository mapping: a system-specific key wins over a bare slug, and a
@@ -176,6 +180,20 @@ function buildSystem(
     override?.repo ??
     null;
 
+  // The subdirectory inside the repository this tree is built from (`real` or
+  // `demo`), when one repository serves both trees through a shared clone. Null
+  // when the app sits at the repository root, or when the plain folder layout
+  // is in use — in both cases the folder on disk IS the working tree root.
+  const subtree = config.subdirs?.[kind] ?? kind;
+  const cloneRoot = config.cloneRoot ? resolve(join(repoRoot, config.cloneRoot)) : null;
+  const clonePath = repo && cloneRoot ? join(cloneRoot, slug) : treePath;
+  const useClone = Boolean(repo && cloneRoot && existsSync(clonePath));
+  const subdir = useClone ? subtree : null;
+  const localPath = useClone ? join(clonePath, subdir!) : treePath;
+
+  // Display path: the repo-relative subdir when cloned, else the tree folder.
+  const repoPath = useClone ? subdir! : repoRelative(repoRoot, treePath);
+
   return {
     id: systemId(kind, slug),
     kind,
@@ -185,6 +203,8 @@ function buildSystem(
     localPath,
     repoPath,
     repo: repo ? repo.toLowerCase() : null,
+    subdir,
+    clonePath,
     watchPaths: override?.watchPaths ?? defaultWatchPaths(repoPath),
     productionBranch:
       override?.productionBranch ?? config.productionBranch ?? DEFAULT_PRODUCTION_BRANCH,
