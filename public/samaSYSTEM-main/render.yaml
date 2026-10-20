@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: sama-system-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm run build
+    startCommand: node dist/app.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://sama-system.vercel.app

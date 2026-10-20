@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.next/
+.env
+*.log
+uploads/*
+!uploads/.gitkeep
+logs/*
+!logs/.gitkeep
+.DS_Store
+Thumbs.db
+*.tsbuildinfo
+next-env.d.ts
+supabase-schema.sql

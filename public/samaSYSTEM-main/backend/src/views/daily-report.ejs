@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقرير اليومي - مركز سما</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            body { background: #fff; }
+        }
+        body {
+            font-family: 'Cairo', 'Arial', sans-serif;
+            background: #f0f4ff;
+            direction: rtl;
+            padding: 10px;
+            color: #1a1a2e;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            padding: 4px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+        }
+        .header-left { text-align: left; font-size: 8px; font-weight: 600; line-height: 1.4; opacity: 0.9; letter-spacing: 0.3px; }
+        .header-right { text-align: right; font-size: 9px; font-weight: 700; line-height: 1.4; }
+        .header-center { text-align: center; }
+        .logo-wrapper {
+            width: 30px; height: 30px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto;
+            border: 1.5px solid rgba(255,255,255,0.3);
+        }
+        .logo-wrapper img { width: 22px; height: 22px; object-fit: cover; border-radius: 50%; }
+        .title-section {
+            background: linear-gradient(135deg, #06b6d4, #0ea5e9, #3b82f6);
+            color: #fff;
+            text-align: center;
+            padding: 2px 16px;
+            font-size: 12px;
+            font-weight: 800;
+            position: relative;
+        }
+        .title-section::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #fbbf24, #f59e0b, #fbbf24);
+        }
+        .title-section p { margin: 0; color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .title-section .subtitle { font-size: 10px; font-weight: 500; opacity: 0.9; }
+        .section-header {
+            padding: 6px 12px;
+            margin: 0;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .section-header .b {
+            display: inline-block; width: 6px; height: 6px;
+            border-radius: 50%; margin-left: 6px;
+        }
+        .section-sessions { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+        .section-patients { background: linear-gradient(135deg, #10b981, #059669); }
+        .section-expenses { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .section-advances { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .section-spacing { height: 3px; background: #f8fafc; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+        thead th {
+            background: #f1f5f9;
+            color: #1e293b;
+            font-weight: 700;
+            padding: 5px 4px;
+            text-align: center;
+            font-size: 10px;
+            border-bottom: 1.5px solid #e2e8f0;
+        }
+        tbody td {
+            padding: 4px 4px;
+            text-align: center;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 11px;
+        }
+        .cell-num {
+            background: #e0f2fe;
+            color: #0369a1;
+            font-weight: 800;
+            width: 28px;
+        }
+        .cell-name { font-weight: 600; color: #1e293b; }
+        .cell-service { color: #0f766e; font-weight: 600; }
+        .cell-price { color: #dc2626; font-weight: 700; direction: ltr; font-size: 11px; }
+        .cell-id { color: #ea580c; font-weight: 600; font-size: 10px; direction: ltr; }
+        .cell-notes { color: #64748b; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .cell-subscription td { background: #e0f7fa !important; }
+        .cell-subscription .cell-name { color: #006064; }
+        .cell-subscription .cell-service { color: #00838f; }
+        .cell-subscription .cell-price { color: #00838f; }
+        .cell-prepaid td { background: #fce7f3 !important; }
+        .cell-prepaid .cell-name { color: #9d174d; }
+        .cell-prepaid .cell-service { color: #be185d; }
+        .cell-prepaid .cell-price { color: #be185d; }
+        .total-row td {
+            background: #fef2f2 !important;
+            font-weight: 700;
+            padding: 6px 4px;
+            border-top: 1.5px solid #fecaca;
+            font-size: 12px;
+        }
+        .total-row .tl { text-align: center; }
+        .total-row .tv { color: #dc2626; font-weight: 800; direction: ltr; }
+        .grand-total td {
+            background: #fffbeb !important;
+            font-weight: 800;
+            padding: 6px 4px;
+            border-top: 1.5px solid #fde68a;
+        }
+        .grand-total .tl { color: #92400e; text-align: center; font-size: 12px; }
+        .grand-total .tv { color: #dc2626; font-weight: 900; font-size: 14px; direction: ltr; }
+        .final-result {
+            background: #ecfdf5;
+            border-top: 2px solid #10b981;
+            text-align: center;
+            padding: 3px 16px;
+            line-height: 1.2;
+        }
+        .final-result .label { font-size: 10px; color: #065f46; font-weight: 600; }
+        .final-result .value { font-size: 15px; font-weight: 900; color: #059669; direction: ltr; }
+        .summary-row {
+            display: flex;
+            gap: 6px;
+            padding: 3px 12px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .summary-card {
+            flex: 1;
+            background: #fff;
+            border-radius: 6px;
+            padding: 3px 6px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            line-height: 1.2;
+        }
+        .summary-card .label { font-size: 8px; color: #64748b; font-weight: 600; }
+        .summary-card .value { font-size: 12px; font-weight: 800; direction: ltr; }
+        .sc-income .value { color: #059669; }
+        .sc-expense .value { color: #dc2626; }
+        .sc-advance .value { color: #7c3aed; }
+        .sc-invoice .value { color: #e11d48; }
+        .sc-profit .value { color: #059669; }
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 10px 20px 14px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+        .footer div { font-weight: 600; color: #475569; text-align: center; font-size: 11px; }
+        .footer .sign-line {
+            display: inline-block;
+            width: 110px;
+            border-bottom: 1.5px dashed #94a3b8;
+            margin-top: 4px;
+            padding-bottom: 2px;
+        }
+        .footer .foot-center { font-size: 9px; color: #94a3b8; text-align: center; }
+        .empty-state { padding: 10px; text-align: center; color: #94a3b8; font-size: 12px; }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .container { box-shadow: none; border-radius: 0; }
+            .header, .title-section, .section-sessions, .section-patients,
+            .section-expenses, .section-advances,
+            .total-row td, .grand-total td, .final-result, .summary-card,
+            .summary-row { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="header">
+        <div class="header-left">SAMA CENTER FOR<br>PHYSIOTHERAPY & REHABILITATION</div>
+        <div class="header-center">
+            <div class="logo-wrapper">
+                <img src="/assets/img/logos/center.png" alt="Logo" onerror="this.style.display='none'">
+            </div>
+        </div>
+        <div class="header-right">مركز سما للعلاج الطبيعي<br>وإعادة التأهيل</div>
+    </div>
+
+    <div class="title-section">
+        <p>التقرير اليومي للمرضى (الفترة الصباحية) <span class="subtitle"><%= dateDisplay %></span></p>
+    </div>
+
+    <% 
+        let sumSessions = 0;
+        sessions.forEach(s => { sumSessions += Number(s.price || 0); });
+        let sumSubscriptions = 0;
+        if (typeof subscriptions !== 'undefined') subscriptions.forEach(sub => { sumSubscriptions += Number(sub.subscription_amount || 0); });
+        let sumExpenses = 0;
+        expenses.forEach(e => { sumExpenses += Number(e.amount || 0); });
+        let sumCoverages = 0;
+        let hijamaCoverageCount = 0;
+        let sumNormalCoverages = 0;
+        let normalCoverageCount = 0;
+        if (typeof coverages !== 'undefined') coverages.forEach(c => { if (c.session_type === 'حجامة - تغطية') { sumCoverages += Number(c.amount || 0); hijamaCoverageCount++; } else { sumNormalCoverages += Number(c.amount || 0); normalCoverageCount++; } });
+        let sumTherapistShares = 0;
+        let extraShareRows = 0;
+        if (typeof coverages !== 'undefined') coverages.forEach(c => { const ts = Number(c.therapistShare || 0); if (ts > 0) { sumTherapistShares += ts; extraShareRows++; } });
+        let sumAdvances = 0;
+        advances.forEach(a => { sumAdvances += Number(a.amount || 0); });
+        let sumInvoices = 0;
+        invoices.forEach(i => { sumInvoices += Number(i.amount || 0); });
+        let incomeTotal = sumSessions + sumSubscriptions + sumCoverages;
+        let netTotal = incomeTotal - (sumExpenses + sumNormalCoverages + sumTherapistShares + sumAdvances + sumInvoices);
+    %>
+
+    <div class="section-header section-sessions">
+        <span class="b" style="background:#a5f3fc"></span>
+        جدول الجلسات والاشتراكات
+        <span style="margin-right:auto;font-size:10px;opacity:0.8;font-weight:500;"><%= sessions.length %> جلسة · <%= typeof subscriptions !== 'undefined' ? subscriptions.length : 0 %> اشتراك<% if (hijamaCoverageCount > 0) { %> · <%= hijamaCoverageCount %> تغطية حجامة<% } %></span>
+    </div>
+    <table>
+        <thead><tr>
+            <th style="width:28px">م</th><th>اسم المريض</th><th>نوع الخدمة</th><th>نوع الدفع</th><th style="width:70px">السعر</th><th>ملاحظات</th>
+        </tr></thead>
+        <tbody>
+            <% if (sessions.length === 0 && (typeof subscriptions === 'undefined' || subscriptions.length === 0) && (typeof coverages === 'undefined' || coverages.length === 0)) { %>
+                <tr><td colspan="6"><div class="empty-state">لا توجد جلسات أو اشتراكات اليوم</div></td></tr>
+            <% } else { %>
+                <% sessions.forEach((s, i) => { %>
+                    <tr>
+                        <td class="cell-num"><%= i + 1 %></td>
+                        <td class="cell-name"><%= s.fullname %></td>
+                        <td class="cell-service"><%= s.session_type %></td>
+                        <td class="cell-pay"><%= s.payment_method || '—' %></td>
+                        <td class="cell-price"><%= Number(s.price || 0).toLocaleString('en-US') %></td>
+                        <td class="cell-notes"><%= s.note || '—' %></td>
+                    </tr>
+                <% }) %>
+                <% if (typeof subscriptions !== 'undefined') subscriptions.forEach((sub, i) => { %>
+                    <tr class="<%= sub.payment_method === 'دفع مسبق' ? 'cell-prepaid' : 'cell-subscription' %>">
+                        <td class="cell-num"><%= sessions.length + i + 1 %></td>
+                        <td class="cell-name"><%= sub.fullname %></td>
+                        <td class="cell-service"><%= sub.session_type %></td>
+                        <td class="cell-pay"><%= sub.payment_method || '—' %></td>
+                        <td class="cell-price"><%= Number(sub.subscription_amount || 0).toLocaleString('en-US') %></td>
+                        <td class="cell-notes">—</td>
+                    </tr>
+                <% }) %>
+                <% if (typeof coverages !== 'undefined') { let hidx = 0; coverages.forEach((c) => { if (c.session_type === 'حجامة - تغطية') { hidx++; %>
+                    <tr>
+                        <td class="cell-num"><%= sessions.length + (typeof subscriptions !== 'undefined' ? subscriptions.length : 0) + hidx %></td>
+                        <td class="cell-name"><%= c.employee_name || '—' %></td>
+                        <td class="cell-service"><%= c.session_type %></td>
+                        <td class="cell-pay">تغطية</td>
+                        <td class="cell-price"><%= Number(c.amount).toLocaleString('en-US') %></td>
+                        <td class="cell-notes"><%= c.date ? String(c.date).slice(0, 10) : '—' %></td>
+                    </tr>
+                <% } }); } %>
+                <tr class="total-row">
+                    <td colspan="2" class="tl">إجمالي الجلسات والاشتراكات</td>
+                    <td></td><td></td><td class="tv" colspan="2"><%= incomeTotal.toLocaleString('en-US') %></td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+
+    <div class="section-spacing"></div>
+
+    <table>
+        <tbody>
+            <tr class="grand-total">
+                <td></td>
+                <td colspan="2" class="tl">الإجمالي الكلي (جلسات + اشتراكات + تغطيات)</td>
+                <td></td>
+                <td class="tv" colspan="2"><%= incomeTotal.toLocaleString('en-US') %></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="section-spacing"></div>
+
+    <div class="section-header section-expenses">
+        <span class="b" style="background:#fcd34d"></span>
+        المصروفات والسلف
+        <span style="margin-right:auto;font-size:10px;opacity:0.8;font-weight:500;"><%= expenses.length %> مصروف<% if (normalCoverageCount > 0) { %> · <%= normalCoverageCount %> تغطية<% } %><% if (extraShareRows > 0) { %> · <%= extraShareRows %> نسبة معالج<% } %> · <%= advances.length %> سلف · <%= invoices.length %> فاتورة</span>
+    </div>
+    <table>
+        <thead><tr>
+            <th style="width:28px">م</th><th>نوع المصروف</th><th>اسم الموظف</th><th style="width:70px">المبلغ</th><th>ملاحظات</th>
+        </tr></thead>
+        <tbody>
+            <% if (expenses.length === 0 && normalCoverageCount === 0 && extraShareRows === 0 && advances.length === 0 && invoices.length === 0) { %>
+                <tr><td colspan="5"><div class="empty-state">لا توجد مصروفات أو سلف أو فواتير اليوم</div></td></tr>
+            <% } else { %>
+                <% expenses.forEach((e, i) => { %>
+                    <tr>
+                        <td class="cell-num"><%= i + 1 %></td>
+                        <td class="cell-name"><%= e.category %></td>
+                        <td class="cell-name"><%= e.employee || '—' %></td>
+                        <td class="cell-price"><%= Number(e.amount).toLocaleString('en-US') %></td>
+                        <td class="cell-notes"><%= e.notes || '—' %></td>
+                    </tr>
+                <% }) %>
+                <% if (typeof coverages !== 'undefined') { let nidx = 0; coverages.forEach((c) => { if (c.session_type !== 'حجامة - تغطية') { nidx++; %>
+                        <tr>
+                            <td class="cell-num"><%= expenses.length + nidx %></td>
+                            <td class="cell-name"><%= c.session_type %></td>
+                            <td class="cell-name"><%= c.employee_name || '—' %></td>
+                            <td class="cell-price"><%= Number(c.amount).toLocaleString('en-US') %></td>
+                            <td class="cell-notes"><%= c.date ? String(c.date).slice(0, 10) : '—' %></td>
+                        </tr>
+                <% } }); } %>
+                <% if (typeof coverages !== 'undefined') { let shareIdx = 0; coverages.forEach((c) => { if (Number(c.therapistShare || 0) > 0) { shareIdx++; %>
+                        <tr>
+                            <td class="cell-num"><%= expenses.length + normalCoverageCount + shareIdx %></td>
+                            <td class="cell-name">نسبة المعالج</td>
+                            <td class="cell-name"><%= c.employee_name || '—' %></td>
+                            <td class="cell-price">-<%= Number(c.therapistShare).toLocaleString('en-US') %></td>
+                            <td class="cell-notes">—</td>
+                        </tr>
+                <% } }); } %>
+                <% advances.forEach((a, i) => { %>
+                    <tr>
+                        <td class="cell-num"><%= expenses.length + normalCoverageCount + extraShareRows + i + 1 %></td>
+                        <td class="cell-name">سلفة</td>
+                        <td class="cell-name"><%= a.employee_name %></td>
+                        <td class="cell-price"><%= Number(a.amount).toLocaleString('en-US') %></td>
+                        <td class="cell-notes"><%= a.note || '—' %></td>
+                    </tr>
+                <% }) %>
+                <% invoices.forEach((inv, i) => { %>
+                    <tr>
+                        <td class="cell-num"><%= expenses.length + normalCoverageCount + extraShareRows + advances.length + i + 1 %></td>
+                        <td class="cell-name"><%= inv.type === 'water' ? 'فاتورة ماء' : 'فاتورة كهرباء' %></td>
+                        <td class="cell-name">—</td>
+                        <td class="cell-price"><%= Number(inv.amount).toLocaleString('en-US') %></td>
+                        <td class="cell-notes"><%= inv.notes || '—' %></td>
+                    </tr>
+                <% }) %>
+                <tr class="total-row">
+                    <td colspan="3" class="tl">إجمالي المصروفات والسلف</td>
+                    <td class="tv"><%= (sumExpenses + sumNormalCoverages + sumTherapistShares + sumAdvances + sumInvoices).toLocaleString('en-US') %></td><td></td>
+                </tr>
+            <% } %>
+        </tbody>
+    </table>
+
+    <div class="final-result">
+        <div class="label">الإجمالي بعد الصرف اليومي</div>
+        <div class="value"><%= netTotal.toLocaleString('en-US') %></div>
+    </div>
+
+    <div class="summary-row">
+        <div class="summary-card sc-income"><div class="label">إجمالي الدخل</div><div class="value"><%= incomeTotal.toLocaleString('en-US') %></div></div>
+        <div class="summary-card sc-income"><div class="label">تغطيات الحجامة</div><div class="value"><%= sumCoverages.toLocaleString('en-US') %></div></div>
+        <div class="summary-card sc-expense"><div class="label">المصروفات</div><div class="value"><%= (sumExpenses + sumNormalCoverages).toLocaleString('en-US') %></div></div>
+        <div class="summary-card sc-expense"><div class="label">نسبة المعالج</div><div class="value"><%= sumTherapistShares.toLocaleString('en-US') %></div></div>
+        <div class="summary-card sc-advance"><div class="label">السلف</div><div class="value"><%= sumAdvances.toLocaleString('en-US') %></div></div>
+        <div class="summary-card sc-invoice"><div class="label">الفاتورة</div><div class="value"><%= sumInvoices.toLocaleString('en-US') %></div></div>
+        <div class="summary-card sc-profit"><div class="label">الصافي</div><div class="value"><%= netTotal.toLocaleString('en-US') %></div></div>
+    </div>
+
+    <div class="footer">
+        <div>إدارة المركز<span class="sign-line"></span></div>
+        <div class="foot-center">مركز سما للعلاج الطبيعي وإعادة التأهيل</div>
+        <div>السكرتارية<span class="sign-line"></span></div>
+    </div>
+
+</div>
+<% if (autoprint !== false) { %><script>window.onload=function(){window.print()}</script><% } %>
+</body>
+</html>

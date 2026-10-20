@@ -1,0 +1,75 @@
+import "dotenv/config";
+import { hashPassword } from "better-auth/crypto";
+import { eq } from "drizzle-orm";
+import { db } from "../lib/db";
+import { accounts, users } from "../drizzle/schema";
+import { PERMISSION_KEYS } from "../lib/users/permissions";
+
+async function createUser(
+  key: { username: string; password: string },
+  profile: { name: string; email: string; role: string },
+  permissions: string[] = [],
+) {
+  const existing = await db.query.users.findFirst({ where: eq(users.username, key.username) });
+
+  if (existing) {
+    const passwordHash = await hashPassword(key.password);
+    await db.update(accounts).set({ password: passwordHash }).where(eq(accounts.userId, existing.id));
+    await db
+      .update(users)
+      .set({ permissions, updatedAt: new Date() })
+      .where(eq(users.username, key.username));
+    console.log(`[seed] user ${key.username} password + permissions updated`);
+    return;
+  }
+
+  const now = new Date();
+  const userId = crypto.randomUUID();
+
+  await db.insert(users).values({
+    id: userId,
+    name: profile.name,
+    email: profile.email,
+    emailVerified: true,
+    role: profile.role,
+    username: key.username,
+    displayUsername: key.username,
+    permissions,
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  const passwordHash = await hashPassword(key.password);
+  await db.insert(accounts).values({
+    id: crypto.randomUUID(),
+    accountId: userId,
+    providerId: "credential",
+    userId,
+    password: passwordHash,
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  console.log(`[seed] user created (username=${key.username}, password=${key.password})`);
+}
+
+async function main() {
+  const all = [...PERMISSION_KEYS];
+  await createUser(
+    { username: "admin", password: "demo123" },
+    { name: "المدير", email: "admin@celia.local", role: "admin" },
+    all,
+  );
+  await createUser(
+    { username: "demo", password: "demo123" },
+    { name: "حساب تجريبي", email: "demo@celia.local", role: "admin" },
+    all,
+  );
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error("[seed] failed:", error);
+    process.exit(1);
+  });

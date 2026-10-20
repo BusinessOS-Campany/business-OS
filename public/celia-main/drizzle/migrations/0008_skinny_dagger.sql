@@ -1,0 +1,2 @@
+ALTER TABLE "transfer_agents" ADD COLUMN "nas_share_id" uuid;--> statement-breakpoint
+ALTER TABLE "transfer_agents" ADD CONSTRAINT "transfer_agents_nas_share_id_nas_shares_id_fk" FOREIGN KEY ("nas_share_id") REFERENCES "public"."nas_shares"("id") ON DELETE set null ON UPDATE no action;

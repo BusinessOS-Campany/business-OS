@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="<%= lang === 'ar' ? 'ar' : 'en' %>" dir="<%= dir %>">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= employeeName %> - <%= t('advances.report.title') %></title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: <%= dir === 'rtl' ? '"Cairo", "Traditional Arabic", Arial' : '"Segoe UI", Arial' %>, sans-serif;
+    background: #f0f2f5;
+    padding: 24px;
+    color: #222;
+  }
+  .container {
+    max-width: 850px;
+    margin: auto;
+    background: #fff;
+    padding: 40px 35px;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    position: relative;
+    overflow: hidden;
+  }
+  .watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.06;
+    width: 350px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+  }
+  .header .logo { height: 55px; }
+  hr {
+    border: none;
+    border-top: 2px solid #1a5276;
+    margin-bottom: 18px;
+    position: relative;
+    z-index: 1;
+  }
+  .title {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #1a5276;
+    position: relative;
+    z-index: 1;
+  }
+  .summary {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+  }
+  .summary-card {
+    border: 1.5px solid #333;
+    border-radius: 10px;
+    padding: 14px 22px;
+    text-align: center;
+    min-width: 180px;
+    background: #fafafa;
+  }
+  .summary-card .label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a5276;
+    margin-bottom: 4px;
+  }
+  .summary-card .value {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .employee-info {
+    border: 1.5px solid #333;
+    border-radius: 10px;
+    padding: 14px 20px;
+    margin-bottom: 22px;
+    font-size: 14px;
+    position: relative;
+    z-index: 1;
+    background: #fafafa;
+  }
+  .employee-info .field {
+    display: flex;
+    align-items: center;
+  }
+  .employee-info .field .lbl {
+    font-weight: 700;
+    margin-<%= dir === 'rtl' ? 'left' : 'right' %>: 6px;
+    color: #1a5276;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+  }
+  th {
+    background: #1a5276;
+    color: #fff;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: <%= dir === 'rtl' ? 'right' : 'left' %>;
+  }
+  td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #ddd;
+    font-size: 13px;
+  }
+  tr:nth-child(even) td { background: #f9f9f9; }
+  .generated {
+    text-align: <%= dir === 'rtl' ? 'left' : 'right' %>;
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+  }
+  .bottom-border {
+    margin-top: 24px;
+    border-top: 2px solid #1a5276;
+    position: relative;
+    z-index: 1;
+  }
+  .footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    font-size: 12px;
+    color: #555;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+  }
+  .footer img { width: 18px; height: 18px; }
+  .footer .sep { color: #ccc; margin: 0 4px; }
+  .print-btn {
+    display: block;
+    margin: 20px auto 0;
+    padding: 10px 32px;
+    background: #1a5276;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
+  }
+  .print-btn:hover { background: #154360; }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .container { box-shadow: none; margin: 0; padding: 24px 20px; max-width: 100%; border-radius: 0; }
+    .watermark { opacity: 0.04; width: 280px; }
+    .summary-card { background: none; }
+    .employee-info { background: none; }
+    .print-btn { display: none; }
+    tr:nth-child(even) td { background: none; }
+  }
+  @media (max-width: 600px) {
+    body { padding: 12px; }
+    .container { padding: 20px 16px; }
+    .header .logo { height: 40px; }
+    .summary-card { min-width: 130px; padding: 10px 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <img src="/assets/img/logos/center.png" class="watermark" alt="">
+
+  <div class="header">
+    <img src="/assets/img/logos/samaE.png" class="logo" alt="SAMA">
+    <img src="/assets/img/logos/center.png" class="logo" alt="Center">
+    <img src="/assets/img/logos/samaA.png" class="logo" alt="سما">
+  </div>
+
+  <hr>
+
+  <h4 class="title"><%= t('advances.report.title') %><% if (month) { %> — <%= month %><% } %></h4>
+
+  <div class="employee-info">
+    <div class="field">
+      <span class="lbl"><%= t('advances.form.employee') %>:</span>
+      <span><%= employeeName %></span>
+    </div>
+  </div>
+
+  <div class="summary">
+    <div class="summary-card">
+      <div class="label"><%= t('advances.report.salary') %></div>
+      <div class="value"><%= salary.toLocaleString() %> YER</div>
+    </div>
+    <div class="summary-card">
+      <div class="label"><%= t('advances.report.totalAdvances') %></div>
+      <div class="value"><%= totalAdvances.toLocaleString() %> YER</div>
+    </div>
+    <div class="summary-card">
+      <div class="label"><%= t('advances.report.remaining') %></div>
+      <div class="value"><%= remaining.toLocaleString() %> YER</div>
+    </div>
+  </div>
+
+  <% if (advances.length > 0) { %>
+  <div class="generated"><%= t('advances.report.generated') %>: <%= generatedDate %></div>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th><%= t('advances.col.amount') %></th>
+        <th><%= t('advances.col.date') %></th>
+        <th><%= t('advances.col.specialty') %></th>
+        <th><%= t('advances.col.notes') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% advances.forEach(function(a, i) { %>
+      <tr>
+        <td><%= i + 1 %></td>
+        <td><%= a.amount.toLocaleString() %> YER</td>
+        <td><%= a.date %></td>
+        <td><%= a.specialty || '-' %></td>
+        <td><%= a.notes || '-' %></td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
+  <% } else { %>
+  <p style="text-align:center;color:#888;margin:30px 0;position:relative;z-index:1"><%= t('advances.report.noAdvances') %></p>
+  <% } %>
+
+  <div class="bottom-border"></div>
+
+  <div class="footer">
+    <img src="/assets/img/mail.png" alt="Email">
+    sama.center.pt@gmail.com
+    <span class="sep">|</span>
+    <img src="/assets/img/telephone.png" alt="Phone">
+    +967778199978 &nbsp; +967736677739
+    <span class="sep">|</span>
+    <img src="/assets/img/location.png" alt="Location">
+    sama-center-website.netlify.app
+  </div>
+
+  <button class="print-btn" onclick="window.print()"><%= t('advances.report.print') %></button>
+</div>
+</body>
+</html>

@@ -1,0 +1,151 @@
+"use client";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useI18n } from "@/lib/i18n/provider";
+import { useParams, useRouter } from "next/navigation";
+import { ArrowLeft, Send, XCircle, Check } from "lucide-react";
+import Link from "next/link";
+
+type Sender = { id: string; name: string | null; role: string };
+type Message = { id: string; content: string; senderId: string; sender: Sender; createdAt: string; read: boolean };
+type Customer = { id: string; name: string | null; email: string };
+
+function BubbleTail({ side, colorClass }: { side: "self" | "other"; colorClass: string }) {
+  return (
+    <svg className={`absolute bottom-0 w-[8px] h-[13px] ${side === "self" ? "-right-[7px]" : "-left-[7px]"}`} viewBox="0 0 8 13" fill="none">
+      <path d={side === "self" ? "M0 13V0C0 0 3.5 2 5.5 4C7.5 6 8 8 8 8L0 13Z" : "M8 13V0C8 0 4.5 2 2.5 4C0.5 6 0 8 0 8L8 13Z"} fill="currentColor" className={colorClass} />
+    </svg>
+  );
+}
+
+export default function AdminChatDetail() {
+  const { t, direction } = useI18n();
+  const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [status, setStatus] = useState("OPEN");
+  const [subject, setSubject] = useState<string | null>(null);
+  const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
+  const endRef = useRef<HTMLDivElement>(null);
+
+  const fetchMessages = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/admin/chat/${id}`);
+      if (!res.ok) { router.push("/admin/chat"); return; }
+      const data = await res.json();
+      setMessages(data.messages);
+      setCustomer(data.customer);
+      setStatus(data.status);
+      setSubject(data.subject);
+    } catch { router.push("/admin/chat"); }
+  }, [id, router]);
+
+  useEffect(() => { fetchMessages(); }, [fetchMessages]);
+  useEffect(() => { const iv = setInterval(fetchMessages, 5000); return () => clearInterval(iv); }, [fetchMessages]);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+
+  const handleSend = async () => {
+    const text = input.trim();
+    if (!text || sending) return;
+    setSending(true);
+    setInput("");
+    try {
+      const res = await fetch(`/api/admin/chat/${id}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: text }),
+      });
+      if (res.ok) {
+        const msg = await res.json();
+        setMessages(prev => [...prev, msg]);
+        if (status === "CLOSED") setStatus("OPEN");
+      }
+    } catch {}
+    setSending(false);
+  };
+
+  const handleToggleStatus = async () => {
+    const newStatus = status === "OPEN" ? "CLOSED" : "OPEN";
+    try {
+      const res = await fetch(`/api/admin/chat/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) setStatus(newStatus);
+    } catch {}
+  };
+
+  return (
+    <div className="flex flex-col h-[calc(100vh-5rem)] bg-background overflow-hidden">
+      <div className="bg-gradient-to-r from-primary to-orange-600 dark:from-primary dark:to-orange-600 text-white shrink-0 shadow-md">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <Link href="/admin/chat" className="p-1 text-white/90 hover:text-white transition-colors">
+            <ArrowLeft className={`h-5 w-5 ${direction === "rtl" ? "rotate-180" : ""}`} />
+          </Link>
+          <div className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold bg-white/20 border-2 border-white/30 shrink-0">
+            {customer?.name?.charAt(0) || "?"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm truncate">{customer?.name || customer?.email || "—"}</p>
+            {subject && <p className="text-xs text-white/80 truncate">{subject}</p>}
+          </div>
+          <button onClick={handleToggleStatus}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${status === "CLOSED" ? "bg-white/25 text-white hover:bg-white/35" : "bg-white/15 text-white hover:bg-white/25"}`}
+          >
+            {status === "CLOSED" ? <Check className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+            {status === "CLOSED" ? t("admin.chat_reopen") : t("admin.chat_close")}
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-1 bg-gradient-to-b from-primary/5 to-transparent">
+        {messages.map((msg, idx) => {
+          const isAdmin = msg.sender.role === "ADMIN";
+          const prevMsg = messages[idx - 1];
+          const nextMsg = messages[idx + 1];
+          const isFirstInGroup = !prevMsg || prevMsg.sender.role !== msg.sender.role;
+          const isLastInGroup = !nextMsg || nextMsg.sender.role !== msg.sender.role;
+          return (
+            <div key={msg.id} className={`flex ${isFirstInGroup ? "mt-3" : "mt-0.5"}`}>
+              <div className={`relative max-w-[75%] px-3.5 py-2 text-sm leading-relaxed shadow-sm ${
+                isAdmin
+                  ? `mr-auto bg-card border border-border text-foreground ${isLastInGroup ? "rounded-2xl rounded-bl-none" : "rounded-2xl"}`
+                  : `ml-auto bg-primary text-primary-foreground ${isLastInGroup ? "rounded-2xl rounded-br-none" : "rounded-2xl"}`
+              }`}>
+                {isLastInGroup && (
+                  <BubbleTail side={isAdmin ? "other" : "self"} colorClass={isAdmin ? "text-card" : "text-primary"} />
+                )}
+                <p className="whitespace-pre-wrap" dir="auto">{msg.content}</p>
+                <p className={`text-[11px] mt-1 text-right ${isAdmin ? "text-muted-foreground" : "text-primary-foreground/70"}`}>
+                  {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+        <div ref={endRef} />
+      </div>
+
+      {status !== "CLOSED" && (
+        <div className="px-3 py-3 border-t border-border bg-card shrink-0">
+          <form onSubmit={e => { e.preventDefault(); handleSend(); }} className="flex items-center gap-2">
+            <input
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder={t("admin.chat_placeholder")}
+              className="flex-1 rounded-full border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-foreground placeholder:text-muted-foreground"
+              disabled={sending}
+            />
+            <button type="submit" disabled={sending || !input.trim()}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-primary to-orange-600 text-primary-foreground shadow-md disabled:opacity-50 hover:shadow-lg hover:scale-105 transition-all shrink-0"
+            >
+              <Send className="h-4 w-4" />
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}

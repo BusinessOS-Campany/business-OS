@@ -1,0 +1,310 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MERCHANT
+  CUSTOMER
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum ItemStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model User {
+  id                    String         @id @default(cuid())
+  name                  String?
+  email                 String         @unique
+  password              String?
+  role                  Role           @default(CUSTOMER)
+  image                 String?
+  emailVerified         DateTime?
+  accounts              Account[]
+  sessions              Session[]
+  orders                Order[]
+  products              Product[]
+  reviews               Review[]
+  favorites             Favorite[]
+  points                Int            @default(0)
+  referralCode          String?        @unique
+  referredById          String?
+  referredBy            User?          @relation("Referrals", fields: [referredById], references: [id])
+  referrals             User[]         @relation("Referrals")
+  store                 Store?
+  withdrawals           Withdrawal[]
+  customerConversations Conversation[] @relation("CustomerConversations")
+  adminConversations    Conversation[] @relation("AdminConversations")
+  messages              Message[]
+  createdAt             DateTime       @default(now())
+}
+
+model Store {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+  name            String?
+  nameEn          String?
+  slug            String?  @unique
+  description     String?
+  descriptionEn   String?
+  logo            String?
+  cover           String?
+  phone           String?
+  email           String?
+  address         String?
+  lat             Decimal? @db.Decimal(10, 7)
+  lng             Decimal? @db.Decimal(10, 7)
+  whatsapp        String?
+  telegram        String?
+  instagram       String?
+  facebook        String?
+  twitter         String?
+  tiktok          String?
+  shippingAddress String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Withdrawal {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  amount      Decimal  @db.Decimal(10, 2)
+  fee         Decimal  @default(0) @db.Decimal(10, 2)
+  status      String   @default("PENDING")
+  method      String?
+  accountInfo String?
+  notes       String?
+  createdAt   DateTime @default(now())
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  nameEn      String?
+  slug        String     @unique
+  description String?
+  image       String?
+  parentId    String?
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryTree")
+  products    Product[]
+  createdAt   DateTime   @default(now())
+}
+
+model Product {
+  id            String      @id @default(cuid())
+  name          String
+  nameEn        String?
+  slug          String      @unique
+  description   String?
+  descriptionEn String?
+  price         Decimal     @db.Decimal(10, 2)
+  images        String[]
+  colors        String[]
+  sizes         String[]
+  colorImages   Json?
+  colorStock    Json?
+  specs         Json?
+  videoUrl      String?
+  brand         String?
+  brandLogo     String?
+  categoryId    String?
+  category      Category?   @relation(fields: [categoryId], references: [id])
+  userId        String?
+  user          User?       @relation(fields: [userId], references: [id])
+  stock         Int         @default(0)
+  discount      Int         @default(0)
+  dealEnd       DateTime?
+  featured      Boolean     @default(false)
+  orderItems    OrderItem[]
+  reviews       Review[]
+  favorites     Favorite[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([price])
+  @@index([brand])
+  @@index([createdAt])
+  @@index([featured])
+  @@index([discount])
+  @@index([categoryId])
+  @@index([name])
+  @@index([userId])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String?
+  user            User?       @relation(fields: [userId], references: [id])
+  customerName    String
+  customerEmail   String
+  customerPhone   String
+  items           OrderItem[]
+  subtotal        Decimal     @default(0) @db.Decimal(10, 2)
+  shippingCost    Decimal     @default(0) @db.Decimal(10, 2)
+  discount        Decimal     @default(0) @db.Decimal(10, 2)
+  total           Decimal     @db.Decimal(10, 2)
+  status          OrderStatus @default(PENDING)
+  shippingAddress String?
+  paymentIntentId String?
+  couponId        String?
+  coupon          Coupon?     @relation(fields: [couponId], references: [id])
+  pointsEarned    Int         @default(0)
+  createdAt       DateTime    @default(now())
+
+  @@index([userId])
+  @@index([customerEmail])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id        String     @id @default(cuid())
+  orderId   String
+  order     Order      @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product    @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Decimal    @db.Decimal(10, 2)
+  color     String?
+  size      String?
+  status    ItemStatus @default(PENDING)
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  rating    Int      @default(5)
+  comment   String?
+  reply     String?
+  reported  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([productId, userId])
+  @@index([reported])
+  @@index([productId])
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+model Banner {
+  id        String   @id @default(cuid())
+  image     String
+  title     String?
+  titleEn   String?
+  desc      String?
+  descEn    String?
+  link      String   @default("/products")
+  order     Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Coupon {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  discount  Int
+  maxUses   Int       @default(0)
+  usedCount Int       @default(0)
+  minAmount Decimal?  @db.Decimal(10, 2)
+  expiresAt DateTime?
+  active    Boolean   @default(true)
+  orders    Order[]
+  createdAt DateTime  @default(now())
+}
+
+model Conversation {
+  id         String    @id @default(cuid())
+  customerId String
+  customer   User      @relation("CustomerConversations", fields: [customerId], references: [id])
+  adminId    String?
+  admin      User?     @relation("AdminConversations", fields: [adminId], references: [id])
+  subject    String?
+  status     String    @default("OPEN")
+  messages   Message[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([customerId])
+  @@index([adminId])
+  @@index([status])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id])
+  content        String
+  read           Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+  @@index([senderId])
+}
