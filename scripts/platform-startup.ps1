@@ -77,12 +77,48 @@ function Test-PortListening {
 }
 
 function Resolve-NodeBinary {
-  # SYSTEM has a different PATH than the logged-on user. Prefer a node that the
-  # machine already knows about, then the one bundled next to the running shell.
+  # SYSTEM has a different PATH than the logged-on user, so `Get-Command node`
+  # alone is not enough: a per-user Node install (the common one here, under
+  # %LOCALAPPDATA%\Programs) is invisible to it. Without these extra candidates
+  # the caller falls back to `npm run serve`, which is not on SYSTEM's PATH and
+  # exits with an empty log - the platform then never starts and the only trace
+  # is a startup.log line saying it did.
   $candidates = @()
+
   $cmd = Get-Command node -ErrorAction SilentlyContinue
   if ($cmd) { $candidates += $cmd.Source }
-  $candidates += "C:\Program Files\nodejs\node.exe"
+
+  # A Node installed per-user, for this account and for every profile on the
+  # machine: a boot task runs as SYSTEM, which must reach the user's copy.
+  $localPrograms = @(
+    $env:LOCALAPPDATA,
+    (Join-Path $env:USERPROFILE "AppData\Local")
+  ) | Where-Object { $_ }
+  foreach ($base in $localPrograms) {
+    $programsDir = Join-Path $base "Programs"
+    if (Test-Path -LiteralPath $programsDir) {
+      Get-ChildItem -LiteralPath $programsDir -Directory -Filter "node-*" -ErrorAction SilentlyContinue |
+        ForEach-Object { $candidates += (Join-Path $_.FullName "node.exe") }
+    }
+  }
+  # Enumerate every profile, so a SYSTEM task does not depend on whose
+  # %LOCALAPPDATA% happens to be in scope.
+  $usersRoot = Join-Path $env:SystemDrive "Users"
+  if (Test-Path -LiteralPath $usersRoot) {
+    Get-ChildItem -LiteralPath $usersRoot -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+      $programsDir = Join-Path $_.FullName "AppData\Local\Programs"
+      if (Test-Path -LiteralPath $programsDir) {
+        Get-ChildItem -LiteralPath $programsDir -Directory -Filter "node-*" -ErrorAction SilentlyContinue |
+          ForEach-Object { $candidates += (Join-Path $_.FullName "node.exe") }
+      }
+    }
+  }
+
+  $candidates += @(
+    "C:\Program Files\nodejs\node.exe",
+    "C:\Program Files (x86)\nodejs\node.exe"
+  )
+
   foreach ($c in $candidates) { if ($c -and (Test-Path -LiteralPath $c)) { return $c } }
   return $null
 }
@@ -102,7 +138,10 @@ function Start-Platform {
   }
 
   # Fallback: the npm wrapper, for the interactive case where it is on PATH.
-  Write-Log "WARN" "next binary or node not found; falling back to 'npm run serve'"
+  # Logged at ERROR, not WARN: this path was observed to exit with an empty log
+  # under SYSTEM, leaving the platform down while the only trace read as a
+  # retry. If this line ever appears at boot, the fix is a resolvable node.
+  Write-Log "ERROR" "node not found (looked on PATH, in every profile's Programs folder, and in Program Files); falling back to 'npm run serve', which usually fails under SYSTEM"
   $arg = "/c npm run serve >> `"$ServeOut`" 2>> `"$ServeErr`""
   Start-Process -FilePath "cmd.exe" -ArgumentList $arg -WorkingDirectory $WorkingDirectory -WindowStyle Hidden | Out-Null
 }

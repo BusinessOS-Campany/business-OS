@@ -41,13 +41,35 @@ if (-not (Test-Path -LiteralPath $DataDir)) { New-Item -ItemType Directory -Forc
 # npm on PATH, and `cmd /c npm ...` would exit non-zero with nothing in the log,
 # leaving the platform down while the watchdog reports success.
 function Resolve-NodeExe {
-  $cmd = Get-Command node -ErrorAction SilentlyContinue
+  # `Get-Command node` is not enough under SYSTEM: a per-user Node install under
+  # %LOCALAPPDATA%\Programs is not on SYSTEM's PATH. Without the profile scan the
+  # command falls through to `npm run serve`, which does not exist there, so the
+  # watchdog would report a restart it never performed while the site stayed down.
   $candidates = @()
+
+  $cmd = Get-Command node -ErrorAction SilentlyContinue
   if ($cmd) { $candidates += $cmd.Source }
+
+  $programsDirs = @()
+  if ($env:LOCALAPPDATA) { $programsDirs += (Join-Path $env:LOCALAPPDATA "Programs") }
+  if ($env:USERPROFILE) { $programsDirs += (Join-Path $env:USERPROFILE "AppData\Local\Programs") }
+  $usersRoot = Join-Path $env:SystemDrive "Users"
+  if (Test-Path -LiteralPath $usersRoot) {
+    Get-ChildItem -LiteralPath $usersRoot -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+      $programsDirs += (Join-Path $_.FullName "AppData\Local\Programs")
+    }
+  }
+  foreach ($programsDir in ($programsDirs | Select-Object -Unique)) {
+    if (-not (Test-Path -LiteralPath $programsDir)) { continue }
+    Get-ChildItem -LiteralPath $programsDir -Directory -Filter "node-*" -ErrorAction SilentlyContinue |
+      ForEach-Object { $candidates += (Join-Path $_.FullName "node.exe") }
+  }
+
   $candidates += @(
     "C:\Program Files\nodejs\node.exe",
     "C:\Program Files (x86)\nodejs\node.exe"
   )
+
   foreach ($c in $candidates) { if ($c -and (Test-Path -LiteralPath $c)) { return $c } }
   return $null
 }
