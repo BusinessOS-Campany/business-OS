@@ -49,11 +49,13 @@
     "public/samaSYSTEM-main",
     "public/GMstore",
     "public/celia-main",
-"public/Hospital--main",
+    "public/Hospital--main",
     "public/pharmacy",
     "public/laboratory--main",
     "public/Optometry  Eye Clinic System",
     "public/POS System",
-    "public/earth"
+    "public/earth",
+    "public/muafa-store-main",
+    "public/dental-Clinic--main"
   ]
 }
