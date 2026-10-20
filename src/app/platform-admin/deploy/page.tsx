@@ -125,7 +125,7 @@ function SystemTable({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[860px] border-collapse">
+      <table className="w-full min-w-[1020px] border-collapse">
         <thead className="border-b border-slate-200 bg-slate-50/60 dark:border-white/5 dark:bg-white/[0.02]">
           <tr>
             <th className={TH}>{d("colSystem")}</th>
@@ -134,6 +134,7 @@ function SystemTable({
             <th className={TH}>{d("colRemote")}</th>
             <th className={TH}>{d("colBranch")}</th>
             <th className={TH}>{d("colDuration")}</th>
+            <th className={TH}>{d("colRepo")}</th>
             <th className={TH}>{d("colRepoPath")}</th>
           </tr>
         </thead>
@@ -187,6 +188,23 @@ function SystemTable({
               </td>
               <td className={TD}>
                 <Duration seconds={row.lastDurationSeconds} locale={locale} overLabel={d("overBudget")} />
+              </td>
+              <td className={TD}>
+                {row.repo ? (
+                  <a
+                    href={`https://github.com/${row.repo}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-mono text-xs text-primary hover:underline"
+                    dir="ltr"
+                  >
+                    {row.repo}
+                  </a>
+                ) : (
+                  <span className={SUB} title={d("unmapped")}>
+                    {d("unmapped")}
+                  </span>
+                )}
               </td>
               <td className={`${TD} ${MONO}`} dir="ltr">
                 {row.repoPath}

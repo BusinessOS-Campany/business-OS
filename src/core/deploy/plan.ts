@@ -9,6 +9,7 @@ import {
   pushedCommit,
   repoKey,
   systemsForPaths,
+  systemsForRepo,
   type DeployedSystemRecord,
 } from "./manifest-schema";
 
@@ -40,8 +41,11 @@ export interface WebhookInput {
   secret: string | null;
   /** The `owner/repo` this deployment trusts, or null to accept any. */
   trustedRepo: string | null;
-  /** Every system the registry knows, for watch-path matching. */
-  systems: readonly Pick<DeployedSystemRecord, "id" | "watchPaths" | "productionBranch">[];
+  /** Every system the registry knows, for repo and watch-path matching. */
+  systems: readonly Pick<
+    DeployedSystemRecord,
+    "id" | "watchPaths" | "productionBranch" | "repo"
+  >[];
   /** Clock override for tests. */
   now?: number;
 }
@@ -72,13 +76,21 @@ export interface DeployPlan {
 }
 
 /**
- * A branch-eligible system together with the paths that decide whether a
- * specific commit concerns it. Carried on the plan so `narrowByPaths` needs
- * nothing but the plan and a file list.
+ * A system together with the paths that decide whether a specific commit
+ * concerns it. Carried on the plan so `narrowByPaths` needs nothing but the
+ * plan and a file list.
  */
 export interface EligibleSystem {
   id: string;
   watchPaths: string[];
+  /**
+   * The repository this system deploys from, or null in a monorepo layout.
+   *
+   * A system with a repo was selected by *repo identity*, so it must survive
+   * path narrowing: its files live at that repo's root and would never match a
+   * `system/<slug>` prefix. Only repo-less systems are filtered by path.
+   */
+  repo?: string | null;
 }
 
 interface PushPayload {
@@ -161,8 +173,35 @@ export function planWebhook(input: WebhookInput): DeployPlan {
     };
   }
 
-  // 5. The repo must be the one this deployment trusts.
-  if (input.trustedRepo && repo && repo !== repoKey(input.trustedRepo)) {
+  // 5. Which systems this repository owns.
+  //
+  //    With a repository per system, the pushed repo IS the routing key: a push
+  //    to `owner/dental` deploys the systems mapped to `owner/dental`, whatever
+  //    files it touched. `systemsForRepo` is that rule.
+  //
+  //    A deployment may still be configured as a monorepo (systems carry no
+  //    per-system repo). Then there is nothing to route by repo, the changed
+  //    paths decide, and the optional `trustedRepo` is a plain allow-list.
+  const mapped = systemsForRepo(input.systems, repo);
+  const anyRepoMapped = input.systems.some((s) => s.repo);
+
+  if (anyRepoMapped && mapped.length === 0) {
+    // This deployment routes by repository, but no system publishes from the
+    // pushed one. A webhook pointed at the wrong repo, or a stranger. Deploying
+    // the branch-eligible monorepo set here would be the worst outcome: a push
+    // to an unrelated repo building and shipping customer systems.
+    return {
+      outcome: "ignored-repo",
+      systems: [],
+      commit: null,
+      branch,
+      repo,
+      reason: `push was for ${repo}, which no system deploys from`,
+    };
+  }
+
+  if (input.trustedRepo && repo && repo !== repoKey(input.trustedRepo) && !anyRepoMapped) {
+    // Monorepo layout with a single trusted repo: any other repo is foreign.
     return {
       outcome: "ignored-repo",
       systems: [],
@@ -180,9 +219,16 @@ export function planWebhook(input: WebhookInput): DeployPlan {
   }
 
   // 7. Only a push to the branch a system builds from. Different systems may
-  //    build from different branches, so this is decided per system.
+  //    build from different branches, so this is decided per system. When the
+  //    repo routed the push, the candidates are that repo's systems; otherwise
+  //    every system is a candidate and the path filter narrows them later.
+  const candidates =
+    mapped.length > 0
+      ? input.systems.filter((s) => mapped.includes(s.id))
+      : input.systems;
+
   const onProduction: string[] = [];
-  for (const system of input.systems) {
+  for (const system of candidates) {
     if (isProductionBranch(payload.ref ?? null, system.productionBranch)) {
       onProduction.push(system.id);
     }
@@ -198,17 +244,25 @@ export function planWebhook(input: WebhookInput): DeployPlan {
     };
   }
 
-  // 8. Which of those the commit actually touched. The file list is not in a
-  //    push payload (only the head commit's added/modified/removed), so the
-  //    caller fills it in; here we return the branch-eligible set and let
-  //    `narrowByPaths` do the file matching once the files are known.
+  // 8. Which of those the commit actually touched. For a repo-per-system layout
+  //    the repo already named the systems, so the whole set deploys — a push to
+  //    the `dental` repo is a dental change even if it only edits its README.
+  //
+  //    For the monorepo fallback the file list is not in a push payload (only
+  //    the head commit's added/modified/removed), so the caller fills it in and
+  //    `narrowByPaths` matches. When the repo already routed, `narrowByPaths` is
+  //    skipped by the caller, because those paths are repo-internal and would
+  //    never match a `system/<slug>` prefix.
   return {
     outcome: "deploy",
     systems: onProduction,
     commit,
     branch,
     repo,
-    reason: `push to ${branch} touches ${onProduction.length} system(s)`,
+    reason:
+      mapped.length > 0
+        ? `push to ${repo} deploys ${onProduction.length} system(s)`
+        : `push to ${branch} touches ${onProduction.length} system(s)`,
   };
 }
 
@@ -228,7 +282,20 @@ export function narrowByPaths(
   if (plan.outcome !== "deploy") return plan;
 
   const candidates = eligible.filter((s) => plan.systems.includes(s.id));
-  const systems = systemsForPaths(candidates, changedFiles);
+
+  // A system routed by repository identity is kept as-is: the repo already
+  // decided it, and its internal file paths cannot match a monorepo prefix.
+  const byRepo = candidates.filter((s) => Boolean(s.repo)).map((s) => s.id);
+  const byPath = systemsForPaths(
+    candidates.filter((s) => !s.repo),
+    changedFiles,
+  );
+
+  // Preserve plan order (the registry's stable order) rather than concatenating
+  // two filtered lists, so the queued order does not depend on how a system was
+  // matched.
+  const keep = new Set([...byRepo, ...byPath]);
+  const systems = plan.systems.filter((id) => keep.has(id));
 
   if (systems.length === 0) {
     return {

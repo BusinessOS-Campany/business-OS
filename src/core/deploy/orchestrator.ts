@@ -13,7 +13,6 @@ import {
   listSystemRecords,
 } from "./store";
 import { repoKey, type DeployedSystemRecord } from "./manifest-schema";
-
 /**
  * The orchestrator: one webhook delivery in, a set of queued builds out.
  *
@@ -68,7 +67,11 @@ function trustedRepo(): string | null {
 
 /** The records a plan may act on, as the pure planner needs them. */
 function eligibleSystems(): EligibleSystem[] {
-  return listSystemRecords().map((record) => ({ id: record.id, watchPaths: record.watchPaths }));
+  return listSystemRecords().map((record) => ({
+    id: record.id,
+    watchPaths: record.watchPaths,
+    repo: record.repo,
+  }));
 }
 
 /**
@@ -95,6 +98,7 @@ export async function handleWebhook(input: HandleWebhookInput): Promise<HandleWe
       id: r.id,
       watchPaths: r.watchPaths,
       productionBranch: r.productionBranch,
+      repo: r.repo,
     })),
   });
 
@@ -126,18 +130,32 @@ export async function handleWebhook(input: HandleWebhookInput): Promise<HandleWe
   }
 
   // 3. Remember the repo this deployment trusts, on the first accepted delivery.
+  //    With a repo per system this is only a label (the registry records which
+  //    repo it first saw); routing itself uses each system's own mapping, so it
+  //    is written once and never gates a later push from a different repo.
   if (basePlan.repo && !loadRegistry().repoKey) {
     await setRepoKey(basePlan.repo);
   }
 
-  // 4. Narrow by the files the commit actually touched. This needs GitHub, and
-  //    is skipped gracefully when GitHub is unreachable — in that case the plan
-  //    stays broad (branch-eligible systems) rather than deploying nothing,
-  //    because a webhook that arrived is itself evidence the commit exists.
+  // 4. Narrow by the files the commit actually touched — but ONLY for systems
+  //    that are not routed by their own repository.
+  //
+  //    In a repo-per-system layout the repository already named the systems, and
+  //    those systems' files sit at their repo's root, so a file list from that
+  //    repo would never match a `system/<slug>` watch prefix. Asking GitHub for
+  //    it would be a wasted call that narrows every system away and deploys
+  //    nothing — the exact silent failure this guard prevents.
+  //
+  //    Only when the plan contains at least one repo-less system (the monorepo
+  //    layout) is the changed-file list fetched, and the repo used is the pushed
+  //    one, which is where those paths live.
   let plan = basePlan;
-  if (basePlan.commit && (trusted || basePlan.repo) && isGithubConfigured()) {
-    const repo = trusted ?? basePlan.repo!;
-    const { files } = await commitFiles(repo, basePlan.commit);
+  const hasPathRouted = eligibleSystems().some(
+    (s) => plan.systems.includes(s.id) && !s.repo,
+  );
+  const fileRepo = basePlan.repo ?? trusted;
+  if (hasPathRouted && basePlan.commit && fileRepo && isGithubConfigured()) {
+    const { files } = await commitFiles(fileRepo, basePlan.commit);
     if (files.length > 0) {
       plan = narrowByPaths(basePlan, eligibleSystems(), files.map((f) => f.filename));
     }
@@ -232,17 +250,41 @@ export async function reconcileAgainstGithub(hooks: ExecutorHooks = {}): Promise
     logger.warn({}, "[deploy] sweep skipped: GitHub is not configured");
     return [];
   }
-  const repo = trustedRepo();
-  if (!repo) {
-    logger.warn({}, "[deploy] sweep skipped: GITHUB_REPO is not set");
+
+  // A system with its own repo is checked against that repo; a repo-less system
+  // falls back to the single trusted repo (the monorepo layout). Grouping by
+  // repo means one branch-head call per repository, not one per system.
+  const fallbackRepo = trustedRepo();
+  const records = listSystemRecords();
+  const repoOf = (record: DeployedSystemRecord): string | null =>
+    record.repo ?? fallbackRepo;
+
+  const repos = new Set(records.map(repoOf).filter((r): r is string => Boolean(r)));
+  if (repos.size === 0) {
+    logger.warn({}, "[deploy] sweep skipped: no system has a repository mapped");
     return [];
   }
 
-  const queued: string[] = [];
-  for (const record of listSystemRecords()) {
+  // Fetch each repo's branch head once, then reuse it for every system in that
+  // repo. `null` means the head could not be read; those systems are left as-is.
+  const heads = new Map<string, { sha: string } | null>();
+  for (const record of records) {
     if (record.status === "queued" || record.status === "building") continue;
+    const repo = repoOf(record);
+    if (!repo) continue;
+    const key = `${repo}@${record.productionBranch}`;
+    if (!heads.has(key)) {
+      heads.set(key, await branchHead(repo, record.productionBranch));
+    }
+  }
 
-    const head = await branchHead(repo, record.productionBranch);
+  const queued: string[] = [];
+  for (const record of records) {
+    if (record.status === "queued" || record.status === "building") continue;
+    const repo = repoOf(record);
+    if (!repo) continue;
+
+    const head = heads.get(`${repo}@${record.productionBranch}`);
     if (!head) continue;
 
     await patchRecord(record.id, { remoteCommit: head.sha, checkedAt: new Date().toISOString() });
@@ -275,6 +317,8 @@ export interface AdminSystemView {
   nameAr: string;
   nameEn: string;
   repoPath: string;
+  /** The GitHub `owner/repo` this system deploys from, or null when unmapped. */
+  repo: string | null;
   productionBranch: string;
   deployedCommit: string | null;
   remoteCommit: string | null;
@@ -295,6 +339,7 @@ export function adminSystemViews(): AdminSystemView[] {
     nameAr: record.nameAr,
     nameEn: record.nameEn,
     repoPath: record.repoPath,
+    repo: record.repo,
     productionBranch: record.productionBranch,
     deployedCommit: record.deployedCommit,
     remoteCommit: record.remoteCommit,

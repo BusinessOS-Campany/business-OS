@@ -73,7 +73,17 @@ export interface DiscoveryRoots {
  */
 interface DeployConfig {
   productionBranch?: string;
-  systems?: Record<string, { productionBranch?: string; watchPaths?: string[] }>;
+  systems?: Record<string, { productionBranch?: string; watchPaths?: string[]; repo?: string }>;
+  /**
+   * Per-system GitHub repositories, keyed the same way as `systems` — a system
+   * id (`real:dental`) or a bare slug (`dental`, applying to both trees). The
+   * value is `owner/repo`.
+   *
+   * Kept as its own top-level map rather than nested under `systems` so the
+   * common case — "this folder publishes to that repository" — reads as one
+   * flat table, which is the thing an operator actually edits.
+   */
+  repos?: Record<string, string>;
 }
 
 function readDeployConfig(repoRoot: string): DeployConfig {
@@ -158,6 +168,13 @@ function buildSystem(
   const repoPath = repoRelative(repoRoot, localPath);
   const label = LABELS[slug];
   const override = config.systems?.[systemId(kind, slug)] ?? config.systems?.[slug];
+  // The repository mapping: a system-specific key wins over a bare slug, and a
+  // per-system entry may also carry `repo` nested for convenience.
+  const repo =
+    config.repos?.[systemId(kind, slug)] ??
+    config.repos?.[slug] ??
+    override?.repo ??
+    null;
 
   return {
     id: systemId(kind, slug),
@@ -167,6 +184,7 @@ function buildSystem(
     nameEn: label?.nameEn ?? fallbackLabel(slug),
     localPath,
     repoPath,
+    repo: repo ? repo.toLowerCase() : null,
     watchPaths: override?.watchPaths ?? defaultWatchPaths(repoPath),
     productionBranch:
       override?.productionBranch ?? config.productionBranch ?? DEFAULT_PRODUCTION_BRANCH,

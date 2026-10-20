@@ -88,6 +88,13 @@ describe("adminSystemViews", () => {
     expect(view.nameAr).toBe("نظام عيادة الأسنان");
     expect(view.nameEn).toBe("Dental Clinic");
   });
+
+  it("reports a null repo for a system with no GitHub mapping", () => {
+    // The sandbox has no config/deploy.json, so nothing is mapped: the view
+    // must say "unmapped" rather than invent a repository.
+    const view = adminSystemViews().find((v) => v.id === "real:dental")!;
+    expect(view.repo).toBeNull();
+  });
 });
 
 describe("the over-budget flag the duration column shows", () => {

@@ -46,6 +46,20 @@ export interface DeployedSystem {
   /** Path of the app inside the monorepo, forward-slashed: `system/clinicos`. */
   repoPath: string;
   /**
+   * The GitHub repository this system's code lives in, lower-cased
+   * `owner/repo`, or null when it has not been mapped yet.
+   *
+   * Each system may live in its own repository rather than a shared monorepo,
+   * so "which repo does a push come from" — not "which folder did it touch" —
+   * is the primary routing key. A push to `businessos/dental` deploys the
+   * system mapped to it; the folders inside that repo are secondary, used only
+   * to skip a commit that touched nothing the system cares about.
+   *
+   * Null means "not mapped": such a system can only be reached by the manual
+   * path, never by a webhook, which is the safe default for an unmapped folder.
+   */
+  repo: string | null;
+  /**
    * Globs (relative to the repo root) whose change should trigger a rebuild of
    * this system. Defaults to `<repoPath>/**`; a shared package a system depends
    * on can be added here so editing it rebuilds every dependant.
@@ -183,6 +197,34 @@ export function systemsForPaths(
 ): string[] {
   const files = toRepoPaths(changedFiles);
   return systems.filter((s) => files.some((f) => watchesPath(s, f))).map((s) => s.id);
+}
+
+/**
+ * The systems a push to `repo` should deploy, when each system lives in its own
+ * repository.
+ *
+ * This is the multi-repo routing rule, and it is intentionally separate from
+ * `systemsForPaths`:
+ *
+ *   - In a monorepo, one repo holds every system and the changed *paths* decide
+ *     which ones are affected, so `systemsForPaths` is the whole answer.
+ *   - With a repo per system, the repository *is* the identity. A push to
+ *     `owner/dental` concerns the systems mapped to `owner/dental`, full stop —
+ *     whatever files it touched. Path matching would be wrong here: a repo whose
+ *     app sits at its root has no `system/<slug>` folder to match against, so a
+ *     path rule would silently deploy nothing on every push.
+ *
+ * A system with no `repo` is never returned: an unmapped folder cannot be
+ * reached by a webhook. Comparison is case-insensitive because GitHub treats
+ * repository names that way.
+ */
+export function systemsForRepo(
+  systems: readonly Pick<DeployedSystem, "id" | "repo">[],
+  repo: string | null | undefined,
+): string[] {
+  if (!repo) return [];
+  const key = repoKey(repo);
+  return systems.filter((s) => s.repo && repoKey(s.repo) === key).map((s) => s.id);
 }
 
 /**

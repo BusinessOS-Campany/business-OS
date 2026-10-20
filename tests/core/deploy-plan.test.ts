@@ -15,13 +15,13 @@ import type { DeployedSystemRecord } from "@/core/deploy/manifest-schema";
 const SECRET = "whsec_test_abc123";
 const REPO = "gmsnow/businessos";
 
-type SystemStub = Pick<DeployedSystemRecord, "id" | "watchPaths" | "productionBranch">;
+type SystemStub = Pick<DeployedSystemRecord, "id" | "watchPaths" | "productionBranch" | "repo">;
 
 const SYSTEMS: SystemStub[] = [
-  { id: "demo:clinicos", watchPaths: ["demo-systems/clinicos/**"], productionBranch: "main" },
-  { id: "real:clinicos", watchPaths: ["system/clinicos/**"], productionBranch: "main" },
-  { id: "real:dental", watchPaths: ["system/dental/**"], productionBranch: "main" },
-  { id: "real:grocery", watchPaths: ["system/grocery/**"], productionBranch: "release" },
+  { id: "demo:clinicos", watchPaths: ["demo-systems/clinicos/**"], productionBranch: "main", repo: null },
+  { id: "real:clinicos", watchPaths: ["system/clinicos/**"], productionBranch: "main", repo: null },
+  { id: "real:dental", watchPaths: ["system/dental/**"], productionBranch: "main", repo: null },
+  { id: "real:grocery", watchPaths: ["system/grocery/**"], productionBranch: "release", repo: null },
 ];
 
 /** A push payload with sensible defaults. */
