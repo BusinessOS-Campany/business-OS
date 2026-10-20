@@ -120,6 +120,29 @@ function Register-BootTask {
   if ($check.Principal.UserId -ne "SYSTEM") {
     throw "Task '$Name' registered with principal '$($check.Principal.UserId)', expected SYSTEM."
   }
+  $hasBootTrigger = ($check.Triggers | Where-Object { $_.CimClass.CimClassName -eq "MSFT_TaskBootTrigger" }).Count -gt 0
+  if (-not $hasBootTrigger) {
+    throw "Task '$Name' has no boot trigger, so it would not start without a logon."
+  }
+
+  # A SYSTEM task gets a security descriptor that denies the interactive user read
+  # access, so `Get-ScheduledTask` from a normal shell returns nothing and
+  # `schtasks /query` answers "Access is denied" -- indistinguishable from the
+  # task not existing. Grant the local users read+execute on the task file so it
+  # can be inspected and managed without elevation.
+  $taskFile = Join-Path "C:\Windows\System32\Tasks" $Name
+  if (Test-Path -LiteralPath $taskFile) {
+    try {
+      $acl = Get-Acl -LiteralPath $taskFile
+      $rule = New-Object System.Security.AccessControl.FileSystemAccessRule(
+        "BUILTIN\Users", "ReadAndExecute", "Allow")
+      $acl.SetAccessRule($rule)
+      Set-Acl -LiteralPath $taskFile -AclObject $acl
+      Write-Host "  granted BUILTIN\Users read access on the task" -ForegroundColor DarkGray
+    } catch {
+      Write-Host "  WARN: could not adjust task ACL: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+  }
 
   Write-Host "Registered: $Name (runs as SYSTEM, at boot + every ${EveryMinutes}m)" -ForegroundColor Green
 }
