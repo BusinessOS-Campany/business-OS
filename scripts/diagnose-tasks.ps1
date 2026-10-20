@@ -48,7 +48,10 @@ foreach ($name in $TaskNames) {
     $cls = $tr.CimClass.CimClassName
     Write-Host "    - $cls enabled=$($tr.Enabled) interval=$($tr.Repetition.Interval) duration=$($tr.Repetition.Duration)"
   }
-  $hasBoot = ($t.Triggers | Where-Object { $_.CimClass.CimClassName -eq "MSFT_TaskBootTrigger" }).Count -gt 0
+  # A CimInstance has no usable .Count -- it returns empty rather than 1 -- so the
+  # obvious `(... | Where-Object {...}).Count -gt 0` reports False for a trigger
+  # that is present. Compare the class-name collection instead.
+  $hasBoot = ($t.Triggers.CimClass.CimClassName) -contains "MSFT_TaskBootTrigger"
   Write-Host "  bootTrigger present: $hasBoot" -ForegroundColor $(if ($hasBoot) { "Green" } else { "Red" })
 
   Write-Host "  actions   :"

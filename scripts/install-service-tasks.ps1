@@ -120,7 +120,10 @@ function Register-BootTask {
   if ($check.Principal.UserId -ne "SYSTEM") {
     throw "Task '$Name' registered with principal '$($check.Principal.UserId)', expected SYSTEM."
   }
-  $hasBootTrigger = ($check.Triggers | Where-Object { $_.CimClass.CimClassName -eq "MSFT_TaskBootTrigger" }).Count -gt 0
+  # A CimInstance has no usable .Count -- it returns empty rather than 1 -- so the
+  # obvious `($t.Triggers | Where-Object {...}).Count -gt 0` is False even when the
+  # trigger is present. Compare against the class-name collection instead.
+  $hasBootTrigger = ($check.Triggers.CimClass.CimClassName) -contains "MSFT_TaskBootTrigger"
   if (-not $hasBootTrigger) {
     throw "Task '$Name' has no boot trigger, so it would not start without a logon."
   }
@@ -161,7 +164,7 @@ $missing = @()
 foreach ($name in @($PlatformTaskName, $WatchdogTaskName)) {
   $t = Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue
   if ($t) {
-    $hasBoot = ($t.Triggers | Where-Object { $_.CimClass.CimClassName -eq "MSFT_TaskBootTrigger" }).Count -gt 0
+    $hasBoot = ($t.Triggers.CimClass.CimClassName) -contains "MSFT_TaskBootTrigger"
     Write-Host ("  [OK]   {0}  user={1}  bootTrigger={2}" -f $name, $t.Principal.UserId, $hasBoot) -ForegroundColor Green
   } else {
     Write-Host "  [MISS] $name" -ForegroundColor Red
